@@ -113,3 +113,15 @@ describe('buildPartnerUrl', () => {
     expect(url.toString()).toBe('https://p.example.com/prod/inventory?q=a%26b%3Dc');
   });
 });
+
+describe('isValidEmail', () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { isValidEmail } = require('../lib/lambda/utils/validation');
+  test.each(['a@example.com', 'first.last+tag@sub.example.co.uk'])('accepts %s', (v) => {
+    expect(isValidEmail(v)).toBe(true);
+  });
+  test.each(['', 'anything', 'a@b', 'a@b.c', 'a b@example.com', '@example.com', 'a@@example.com', 42, null])(
+    'rejects %p', (v) => {
+      expect(isValidEmail(v)).toBe(false);
+    });
+});

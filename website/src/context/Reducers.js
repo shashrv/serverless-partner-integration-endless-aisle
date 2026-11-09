@@ -1,3 +1,14 @@
+export const EMPTY_CUSTOMER = Object.freeze({
+  firstName: '',
+  lastName: '',
+  email: '',
+  address: '',
+  city: '',
+  state: '',
+  postalCode: '',
+  country: ''
+});
+
 export const cartReducer = (state, action) => {
   switch (action.type) {
     case "ADD_TO_CART":
@@ -13,6 +24,12 @@ export const cartReducer = (state, action) => {
         cart: state.cart.filter((c) =>
           c.itemId === action.payload.itemId ? (c.qty = action.payload.qty) : c.qty
         ),
+      };
+    case "SET_CUSTOMER_FIELD":
+      if (!Object.prototype.hasOwnProperty.call(EMPTY_CUSTOMER, action.payload.field)) return state;
+      return {
+        ...state,
+        customerDetails: { ...state.customerDetails, [action.payload.field]: action.payload.value }
       };
     case "ADD_CUSTOMER_DETAILS_FIRST_NAME":
       return {
@@ -56,16 +73,7 @@ export const cartReducer = (state, action) => {
       };
     case "CLEAR_CART":
       return {
-        ...state, cart: [], customerDetails: {
-          fistName: '',
-          lastName: '',
-          email: '',
-          address: '',
-          city: '',
-          state: '',
-          postalCode: '',
-          country: ''
-        }
+        ...state, cart: [], customerDetails: { ...EMPTY_CUSTOMER }
       };
     default:
       return state;

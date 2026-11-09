@@ -87,3 +87,20 @@ test('S3 buckets block public access and enforce TLS', () => {
     }),
   });
 });
+
+test('create-order model requires a well-formed customer email', () => {
+  template.hasResourceProperties('AWS::ApiGateway::Model', {
+    Name: 'craeteOrderRequestModel',
+    Schema: Match.objectLike({
+      required: ['requestedItem', 'customer'],
+      properties: Match.objectLike({
+        customer: Match.objectLike({
+          required: Match.arrayWith(['email']),
+          properties: Match.objectLike({
+            email: Match.objectLike({ pattern: Match.stringLikeRegexp('@') }),
+          }),
+        }),
+      }),
+    }),
+  });
+});

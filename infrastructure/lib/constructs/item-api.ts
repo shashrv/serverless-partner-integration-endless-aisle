@@ -10,7 +10,6 @@ import { Effect, PolicyStatement } from 'aws-cdk-lib/aws-iam';
 import { Code, IFunction, Runtime } from 'aws-cdk-lib/aws-lambda';
 import { EmailIdentity, Identity } from 'aws-cdk-lib/aws-ses';
 import { Queue } from 'aws-cdk-lib/aws-sqs';
-import { AwsCustomResource, AwsCustomResourcePolicy, PhysicalResourceId } from 'aws-cdk-lib/custom-resources';
 import { Construct } from 'constructs';
 import { GetItemSchema } from '../schema/apischema';
 
@@ -141,61 +140,22 @@ export class ItemApiConstruct extends Construct {
       }
     });
     if (STORE_EMAIL) {
-      const region = props.env.region;
-
-      new EmailIdentity(this, 'Identity', {
+      // Creates the SES email identity and sends the one-time verification email.
+      const identity = new EmailIdentity(this, 'Identity', {
         identity: Identity.email(STORE_EMAIL)
       });
-      new AwsCustomResource(this, 'VerifyEmailIdentity' + STORE_EMAIL, {
-        onCreate: {
-          service: 'SES',
-          action: 'verifyEmailIdentity',
-          parameters: {
-            EmailAddress: STORE_EMAIL,
-          },
-          physicalResourceId: PhysicalResourceId.of('verify-' + STORE_EMAIL),
-          region,
-        },
-        onDelete: {
-          service: 'SES',
-          action: 'deleteIdentity',
-          parameters: {
-            Identity: STORE_EMAIL,
-          },
-          region,
-        },
-        policy: generateSesPolicyForCustomResource('VerifyEmailIdentity', 'DeleteIdentity'),
-      });
-      const SES_EMAIL_DOMAIN = STORE_EMAIL.split('@')[1];
 
-      // 👇 Add permissions to the Lambda function to send Emails
+      // The notifier sends from and to the store address, so it only needs that one identity.
       orderStatus.lambdaFunction.addToRolePolicy(
         new PolicyStatement({
           effect: Effect.ALLOW,
-          actions: [
-            'ses:SendEmail',
-            'ses:SendRawEmail',
-            'ses:SendTemplatedEmail',
-          ],
+          actions: ['ses:SendEmail', 'ses:SendRawEmail'],
           resources: [
-            `arn:aws:ses:${SES_REGION}:${Stack.of(this).account
-            }:identity/*${SES_EMAIL_DOMAIN}`,
+            `arn:${Stack.of(this).partition}:ses:${SES_REGION}:${Stack.of(this).account}:identity/${identity.emailIdentityName}`,
           ],
         }),
       );
     }
   }
-}
-
-function generateSesPolicyForCustomResource(...methods: string[]): AwsCustomResourcePolicy {
-  // for some reason the default policy is generated as `email:<method>` which does not work -> hence we need to provide our own
-  return AwsCustomResourcePolicy.fromStatements([
-    new PolicyStatement({
-      actions: methods.map((method) => 'ses:' + method),
-      effect: Effect.ALLOW,
-      // PolicySim says ses:SetActiveReceiptRuleSet does not allow specifying a resource, hence use '*'
-      resources: ['*'],
-    }),
-  ]);
 }
 
