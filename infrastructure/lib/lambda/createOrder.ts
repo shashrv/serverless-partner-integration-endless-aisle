@@ -1,12 +1,11 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: MIT-0
-import { SQSEvent, SQSRecord } from 'aws-lambda';
-import axios from 'axios';
-import { getParamFromSSM } from './utils/getParameter';
-import { ItemRequestSchema, OrderSchema, OrderStatus } from "./utils/schema";
-
 import { DynamoDB } from '@aws-sdk/client-dynamodb';
 import { DynamoDBDocument } from '@aws-sdk/lib-dynamodb';
+import { SQSEvent } from 'aws-lambda';
+import { getParamFromSSM } from './utils/getParameter';
+import { buildPartnerUrl, requestJson } from './utils/http';
+import { ItemRequestSchema, OrderSchema, OrderStatus } from "./utils/schema";
 
 const docClient = DynamoDBDocument.from(new DynamoDB({}));
 
@@ -15,164 +14,112 @@ const ORDER_TABLE_NAME = process.env.ORDER_TABLE_NAME || '';
 const PARTNER_TABLE_PK = process.env.PARTNER_TABLE_PK || '';
 const OrderTax = 8;
 
+const ID_PATTERN = /^[A-Za-z0-9_-]{1,64}$/;
 
-interface requestOrderParmas {
-    TableName: string,
-    Item: OrderSchema
+interface PartnerOrderResponse {
+    orderId?: string;
+    message?: string;
 }
 
+/**
+ * Consumes one order request from SQS (batch size 1), places it with the partner and
+ * stores the result. Infrastructure failures throw, so SQS redrives the message to the
+ * DLQ instead of dropping the order. Invalid messages are logged and discarded.
+ */
 export const handler = async (event: SQSEvent) => {
-
-    if (!event.Records) {
-        return {
-            statusCode: 400,
-            body: 'invalid request, missing the parameters  in body',
-            headers: {
-                'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*'
-            }
-        };
+    const record = event?.Records?.[0];
+    if (!record) {
+        console.error('Empty SQS event');
+        return;
     }
-    const records: SQSRecord[] = event.Records;
-    const record = records[0];
-    const orderedItem: ItemRequestSchema = typeof record.body == 'object' ? record.body : JSON.parse(record.body);
 
-    const { requestedItem, customer } = orderedItem;
+    let orderedItem: ItemRequestSchema;
+    try {
+        orderedItem = typeof record.body === 'object' ? record.body : JSON.parse(record.body);
+    } catch {
+        console.error(`Discarding message ${record.messageId}: body is not valid JSON`);
+        return;
+    }
 
-    // Step 2 -Get Partner information
-    const params = {
+    const { requestedItem, customer } = orderedItem ?? {};
+    const quantity = Number(requestedItem?.quantity);
+    const price = Number(requestedItem?.price);
+    if (!requestedItem || !customer?.email
+        || typeof requestedItem.partnerId !== 'string' || !ID_PATTERN.test(requestedItem.partnerId)
+        || typeof requestedItem.itemId !== 'string' || !ID_PATTERN.test(requestedItem.itemId)
+        || !Number.isInteger(quantity) || quantity < 1
+        || !Number.isFinite(price) || price < 0) {
+        console.error(`Discarding message ${record.messageId}: invalid order payload`);
+        return;
+    }
+
+    const partnerInfo = await docClient.get({
         TableName: PARTNER_TABLE_NAME,
-        Key: {
-            [PARTNER_TABLE_PK]: requestedItem.partnerId,
-        }
-    }
-    const partnerInfo = await docClient.get(params).then((data) => {
-        return data.Item
-    }).catch((err) => {
-        throw new Error(`Failed to get partner info ${err}`);
-    });
+        Key: { [PARTNER_TABLE_PK]: requestedItem.partnerId }
+    }).then((data) => data.Item);
     if (!partnerInfo) {
-        return {
-            statusCode: 400,
-            body: `invalid partner configuration`,
-            headers: {
-                'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*'
-            }
-        };
+        console.error(`Discarding message ${record.messageId}: unknown partnerId ${requestedItem.partnerId}`);
+        return;
     }
-    console.debug(`create order - get partner info data: ${JSON.stringify(partnerInfo)}`);
-    // Step 2 - Place order request 
 
     if (!process.env.TOKEN_PATH) {
-        return {
-            statusCode: 400,
-            body: `Token path not found in partner configuration`,
-            headers: {
-                'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*'
-            }
-        };
+        throw new Error('TOKEN_PATH is not configured');
     }
     const authorizationToken = await getParamFromSSM(process.env.TOKEN_PATH);
-    if (authorizationToken === "No Data" || authorizationToken === undefined || authorizationToken === null || authorizationToken === "") {
-        return {
-            statusCode: 400,
-            body: `Error getting token information from SSM`,
-            headers: {
-                'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*'
-            }
-        };
+    if (!authorizationToken) {
+        throw new Error('Unable to read partner token');
     }
-    const requestURL = `${partnerInfo.webhook}inventory`;
 
-    const config = {
-        method: 'post',
-        maxBodyLength: Infinity,
-        url: requestURL,
-        headers: {
-            'authorizationToken': authorizationToken.toString().trim(),
-        },
-        data: requestedItem
-    };
-
-    const orderInfo = await axios(config)
-        .then((data) => {
-            const orderId = data.data.orderId;
-            return {
-                statusCode: 200,
-                message: `Order Placed for order id ${orderId} with reference item ID : ${requestedItem.itemId}`,
-                orderId: `${orderId}`,
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Access-Control-Allow-Origin': '*'
-                }
-            }
-        })
-        .catch((error) => {
-            console.error(`Error connecting with Mock API sending a dummy response : ${error}`);
-            return {
-                statusCode: 400,
-                message: `Order did not place: ${requestedItem.itemId}`,
-                orderId: null,
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Access-Control-Allow-Origin': '*'
-                }
-            }
-        });
-
-    if (!orderInfo || !orderInfo.orderId) {
-        return {
-            statusCode: 400,
-            body: `order placement failed with message: ${orderInfo.message}`,
-            headers: {
-                'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*'
-            }
-        };
-    }
-    console.log(`Order update : ${JSON.stringify(orderInfo)}`);
-
-    const reqParams: requestOrderParmas = {
-        TableName: ORDER_TABLE_NAME,
-        /* Item properties will depend on your application concerns */
-        Item: {
-            orderId: orderInfo.orderId,
-            partnerId: requestedItem.partnerId,
-            product: {
-                itemId: requestedItem.itemId,
-                quantity: requestedItem.quantity,
-                size: requestedItem.size
-            },
-            messageId: event.Records[0].messageId,
-            orderDate: new Date().getTime(),
-            price: requestedItem.price,
-            subtotal: Number(requestedItem.price) + Number(requestedItem.price) * (OrderTax / 100),
-            salestax: `${OrderTax}%`,
-            orderStatus: (orderInfo.statusCode == 200) ? OrderStatus.Completed : OrderStatus.Pending,
-            statusDescription: orderInfo.message,
+    const url = buildPartnerUrl(partnerInfo.webhook, 'inventory');
+    // Send only the fields the partner API needs; customer PII stays in this account.
+    const result = await requestJson<PartnerOrderResponse>(url, {
+        method: 'POST',
+        headers: { authorizationToken },
+        body: {
+            itemId: requestedItem.itemId,
+            sku: requestedItem.sku,
+            quantity,
             partner: requestedItem.partner,
-            subscribers: [{
-                email: customer.email,
-                firstName: customer.firstName,
-                lastName: customer.lastName,
-                address: customer.address
-            }]
+            partnerId: requestedItem.partnerId
         }
-    }
-    const response = await docClient.put(reqParams).then((res) => {
-        return res.Attributes
-    }).catch((err) => {
-        throw new Error(`Failed to store data in DDB for order info ${err}`);
     });
-    return {
-        statusCode: 200,
-        body: JSON.stringify(response),
-        headers: {
-            'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': '*'
-        }
+
+    const orderId = result.ok ? result.data?.orderId : undefined;
+    if (!orderId) {
+        console.warn(`Partner rejected order for item ${requestedItem.itemId} with status ${result.status}`);
+        return;
+    }
+
+    const message = `Order Placed for order id ${orderId} with reference item ID : ${requestedItem.itemId}`;
+    const item: OrderSchema = {
+        orderId: `${orderId}`,
+        partnerId: requestedItem.partnerId,
+        product: {
+            itemId: requestedItem.itemId,
+            quantity,
+            size: requestedItem.size
+        },
+        messageId: record.messageId,
+        orderDate: Date.now(),
+        price,
+        subtotal: price + price * (OrderTax / 100),
+        salestax: `${OrderTax}%`,
+        orderStatus: OrderStatus.Completed,
+        statusDescription: message,
+        partner: requestedItem.partner,
+        subscribers: [{
+            email: customer.email,
+            firstName: customer.firstName,
+            lastName: customer.lastName,
+            address: customer.address
+        }]
     };
-}
+
+    await docClient.put({
+        TableName: ORDER_TABLE_NAME,
+        Item: item,
+        // Never overwrite an existing order with the same id.
+        ConditionExpression: 'attribute_not_exists(orderId)'
+    });
+    console.log(`Stored order ${orderId} for message ${record.messageId}`);
+};

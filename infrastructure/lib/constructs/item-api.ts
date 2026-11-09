@@ -65,7 +65,7 @@ export class ItemApiConstruct extends Construct {
       lambdaFunctionProps: {
         functionName: `endless-aisle-getItem-lambda`,
         description: `Lambda Function to get item availability.`,
-        runtime: Runtime.NODEJS_18_X,
+        runtime: Runtime.NODEJS_24_X,
         code: Code.fromAsset(`${__dirname}/../lambda/`),
         handler: 'getItem.handler',
         timeout: Duration.seconds(15),
@@ -110,7 +110,7 @@ export class ItemApiConstruct extends Construct {
       lambdaFunctionProps: {
         functionName: `endless-aisle-notifier-lambda`,
         description: `Lambda Function to notify store associate about order placements.`,
-        runtime: Runtime.NODEJS_18_X,
+        runtime: Runtime.NODEJS_24_X,
         code: Code.fromAsset(`${__dirname}/../lambda/`),
         handler: 'notifier.handler',
         timeout: Duration.seconds(15),

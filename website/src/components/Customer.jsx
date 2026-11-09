@@ -4,7 +4,8 @@ import { MDBInput, MDBCard, MDBCardBody, MDBCardHeader, MDBCol, MDBRow, MDBTypog
 import { CartState } from "../context/Context";
 import SubHeader from "./SubHeader";
 import { Link } from "react-router-dom";
-import { API } from "aws-amplify";
+import { post } from "aws-amplify/api";
+import { ORDERS_API } from "../config";
 
 function Customer() {
   const {
@@ -79,7 +80,8 @@ function Customer() {
       const body = {
         requestedItem: {
           itemId: item.itemId,
-          quantity: item.qty,
+          // The cart select stores the value as a string; the API model expects a number.
+          quantity: Number(item.qty),
           size: item.size,
           partner: item.partner,
           price: Number(item.price),
@@ -94,9 +96,13 @@ function Customer() {
           email: customerDetails.email
         }
       }
-      API.post('orders', 'orders', { body: body }).then(response => {
-        console.log(`Order Submitted Successfully for ${response.SendMessageResponse.SendMessageResult.MessageId}`);
-      }).catch(error => { console.log(`Error:  ${JSON.stringify(error)}`) });
+      post({ apiName: ORDERS_API, path: '/orders', options: { body } }).response
+        .then(({ body: res }) => res.json())
+        .then(response => {
+          console.log(`Order Submitted Successfully for ${response?.SendMessageResponse?.SendMessageResult?.MessageId}`);
+        })
+        // Do not log the full error: it can include the request body with customer PII.
+        .catch(error => { console.error('Order submission failed', error?.name); });
 
     });
 

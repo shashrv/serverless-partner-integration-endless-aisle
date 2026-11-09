@@ -12,4 +12,5 @@ new InfrastructureStack(app, 'InfrastructureStack', {
   env: { region: process.env.CDK_DEFAULT_REGION, account: process.env.CDK_DEFAULT_ACCOUNT },
 });
 
-cdk.Aspects.of(app).add(new AwsSolutionsChecks({ verbose: true }))
+// cdk-nag v3 runs as a CDK policy-validation plugin; unacknowledged findings fail synth.
+cdk.Validations.of(app).addPlugins(new AwsSolutionsChecks(app, { verbose: true }));

@@ -1,13 +1,20 @@
+import { productImage } from "../images";
 import { Col, Image, ListGroup, Row } from "react-bootstrap";
 const Orders = ({ orders }) => {
-    const address = JSON.parse(orders.subscribers[0].address);
+    const subscriber = orders.subscribers?.[0] ?? {};
+    let address = {};
+    try {
+        address = typeof subscriber.address === "string" ? JSON.parse(subscriber.address) : (subscriber.address ?? {});
+    } catch {
+        address = {};
+    }
     return (
         <div className="orderContainer">
             <ListGroup>
                 <ListGroup.Item key={orders.product.itemId}>
                     <Row>
                         <Col md={2}>
-                            <Image src={`${require(`../../images/products/${orders.product.itemId}.jpg`)}`} alt={orders.product.itemId} fluid rounded />
+                            <Image src={productImage(orders.product.itemId)} alt={orders.product.itemId} fluid rounded />
                         </Col>
                         <Col md={2}>
                             <span>Order Date: {
@@ -22,8 +29,8 @@ const Orders = ({ orders }) => {
                         </Col>
                         <Col md={2}> Price: ${orders.price}</Col>
                         <Col md={2}>
-                            Contact Email: {orders.subscribers[0].email} <br />
-                            Name: {orders.subscribers[0].firstName} {orders.subscribers[0].lastName}<br />
+                            Contact Email: {subscriber.email} <br />
+                            Name: {subscriber.firstName} {subscriber.lastName}<br />
                             Address: <br />
                             {address.address}<br />
                             City: {address.city}<br />

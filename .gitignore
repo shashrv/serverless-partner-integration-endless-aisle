@@ -1,4 +1,3 @@
 node_modules
 .DS_Store
-infrastructure/lib/lambda/package-lock.json
-infrastructure/package-lock.json
+# Lockfiles are committed so installs are reproducible (npm ci).

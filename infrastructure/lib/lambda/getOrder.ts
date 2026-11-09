@@ -58,7 +58,8 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
             }).catch((err) => {
                 throw new Error(`Failed to get order info ${err}`);
             });
-            console.log(`{ "message": ${JSON.stringify(orderInfo)}`);
+            // Do not log the order: it contains customer PII (name, email, address).
+            console.log(`Order lookup for ${orderId}: ${orderInfo ? 'found' : 'not found'}`);
             if (orderInfo) {
                 return {
                     statusCode: 200,

@@ -45,7 +45,7 @@ export class APIGatewayConstruct extends Construct {
     const inventoryHandler = new Function(this, `${props.apiname}Lambda`, {
       functionName: `partner-inventory-lambda`,
       description: `Lambda Function to get items and post order to partner endpoint.`,
-      runtime: Runtime.NODEJS_18_X,
+      runtime: Runtime.NODEJS_24_X,
       code: Code.fromAsset(`${__dirname}/../../lambda/`),
       handler: 'inventory.handler',
       role: inventoryRole
@@ -61,7 +61,7 @@ export class APIGatewayConstruct extends Construct {
     const partnerCustomAuthHandler = new Function(this, `${props.apiname}-partner-auth-Lambda`, {
       functionName: `partner-auth-lambda`,
       description: `Lambda Function to handle authorization for partner requests.`,
-      runtime: Runtime.NODEJS_18_X,
+      runtime: Runtime.NODEJS_24_X,
       code: Code.fromAsset(`${__dirname}/../../lambda/`),
       handler: 'partnerAuth.handler',
       role: partnerInventoryRole,

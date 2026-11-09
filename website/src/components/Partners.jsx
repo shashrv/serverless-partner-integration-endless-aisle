@@ -1,3 +1,4 @@
+import { partnerImage } from "../images";
 import { Card, Button } from "react-bootstrap";
 import { CartState } from "../context/Context";
 import { Link } from "react-router-dom";
@@ -15,7 +16,7 @@ const Partners = ({ partner }) => {
     return (
         <div className="partners">
             <Card>
-                <Card.Img variant="top" src={`${require(`../../images/partners/${partner.partnerId}.jpg`)}`} alt={partner.name} />
+                <Card.Img variant="top" src={partnerImage(partner.partnerId)} alt={partner.name} />
                 <Card.Body>
                     <Card.Title>{partner.name}</Card.Title>
                     <Card.Subtitle style={{ paddingBottom: 10 }}>

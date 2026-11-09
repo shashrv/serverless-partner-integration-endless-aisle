@@ -33,11 +33,10 @@ export const handler = async (event: DynamoDBStreamEvent) => {
 
                     const orderId = newImage.orderId;
                     const statusDescription = newImage.statusDescription;
-                    const email = newImage.subscribers[0].email;
-                    const name = `${newImage.subscribers[0].firstName} ${newImage.subscribers[0].lastName}`;
-                    const address = JSON.stringify(newImage.subscribers[0].address);
+                    const email = newImage.subscribers?.[0]?.email;
                     const partner = newImage.partner;
-                    console.log(`Email : ${email} \nOrderStatus : ${statusDescription} \nOrderId : ${orderId} \n name : ${name} \n Address: ${address} \n`);
+                    // Do not log customer name, email or address (PII).
+                    console.log(`Notifying store about order ${orderId}`);
 
                     if (!orderId || !email || !statusDescription || !partner)
                         throw new Error('Properties orderId, email, partner and message are required');
@@ -91,10 +90,10 @@ async function sendEmail(orderId: string, email: string, partner: string, orderS
     };
 
     try {
-        const key = await ses.sendEmail(emailParams);
-        console.log("MAIL SENT SUCCESSFULLY!!" + JSON.stringify(key));
+        const result = await ses.sendEmail(emailParams);
+        console.log(`Order notification sent, messageId ${result.MessageId}`);
     } catch (e) {
-        console.log("FAILURE IN SENDING MAIL!!", e);
+        console.error(`Failed to send order notification: ${(e as Error)?.name}`);
     }
     return;
 }

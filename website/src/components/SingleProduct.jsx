@@ -1,3 +1,4 @@
+import { productImage } from "../images";
 import { Card, Button } from "react-bootstrap";
 import { CartState } from "../context/Context";
 import Rating from "./Rating";
@@ -11,7 +12,7 @@ const SingleProduct = ({ prod }) => {
   return (
     <div className="products">
       <Card>
-        <Card.Img variant="top" src={`${require(`../../images/products/${prod.itemId}.jpg`)}`} alt={prod.name} />
+        <Card.Img variant="top" src={productImage(prod.itemId)} alt={prod.name} />
         <Card.Body>
           <Card.Title>{prod.name}</Card.Title>
           <Card.Subtitle style={{ paddingBottom: 10 }}>

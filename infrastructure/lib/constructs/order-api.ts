@@ -1,7 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: MIT-0
 import { LambdaToDynamoDB } from '@aws-solutions-constructs/aws-lambda-dynamodb';
-import { Duration } from 'aws-cdk-lib';
+import { Duration, Stack } from 'aws-cdk-lib';
 import { AuthorizationType, AwsIntegration, Cors, IntegrationOptions, LambdaIntegration, MethodOptions, Model, RequestValidator, RestApi } from 'aws-cdk-lib/aws-apigateway';
 import { UserPool, UserPoolClient } from 'aws-cdk-lib/aws-cognito';
 import { Table } from 'aws-cdk-lib/aws-dynamodb';
@@ -55,7 +55,7 @@ export class OrderApiConstruct extends Construct {
       lambdaFunctionProps: {
         functionName: `endless-aisle-createOrder-lambda`,
         description: `Lambda Function to create orders by calling partner endpoints.`,
-        runtime: Runtime.NODEJS_18_X,
+        runtime: Runtime.NODEJS_24_X,
         code: Code.fromAsset(`${__dirname}/../lambda/`),
         handler: 'createOrder.handler',
         timeout: Duration.seconds(15),
@@ -87,7 +87,9 @@ export class OrderApiConstruct extends Construct {
           'X-Amz-Security-Token'
         ],
         allowMethods: [HttpMethod.GET, HttpMethod.POST, HttpMethod.OPTIONS],
-        allowCredentials: true
+        // The API authenticates with a bearer token in the Authorization header, not
+        // cookies, so credentialed CORS is not needed (and is invalid with a wildcard origin).
+        allowCredentials: false
       }
     });
 
@@ -131,7 +133,7 @@ export class OrderApiConstruct extends Construct {
     //Create SQS intergration for DynamoDB    
     const createOrderIntegration = new AwsIntegration({
       service: "sqs",
-      path: `${process.env.CDK_DEFAULT_ACCOUNT}/${orderqueue.queueName}`,
+      path: `${Stack.of(this).account}/${orderqueue.queueName}`,
       integrationHttpMethod: "POST",
       options: createReqIntegrationOptions,
     });
@@ -186,7 +188,7 @@ export class OrderApiConstruct extends Construct {
       lambdaFunctionProps: {
         functionName: `endless-aisle-getOrder-lambda`,
         description: `Lambda Function to get order information from DB.`,
-        runtime: Runtime.NODEJS_18_X,
+        runtime: Runtime.NODEJS_24_X,
         code: Code.fromAsset(`${__dirname}/../lambda/`),
         handler: 'getOrder.handler',
         timeout: Duration.seconds(15),

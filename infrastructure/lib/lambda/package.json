@@ -1,18 +1,11 @@
 {
   "name": "lambda-handlers",
-  "version": "0.0.0",
-  "description": "Code for all lambda handlers",
+  "version": "0.1.0",
+  "description": "Code for all lambda handlers. Handlers use only the Node.js runtime and the AWS SDK v3 bundled with the Lambda runtime, so there are no runtime dependencies.",
+  "private": true,
   "scripts": {
-    "build": "tsc",
-    "package": "npm install && npm run build",
-    "clean": "rm -rf node_modules && rm */*.d.ts && rm */*.js"
+    "package": "echo 'No Lambda runtime dependencies to install; handlers are compiled by the infrastructure tsc build.'"
   },
   "author": "",
-  "license": "MIT",
-  "devDependencies": {
-    "@types/node": "*"
-  },
-  "dependencies": {
-    "axios": "*"
-  }
+  "license": "MIT-0"
 }
