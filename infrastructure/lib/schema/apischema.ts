@@ -1,4 +1,5 @@
 import { JsonSchemaType } from "aws-cdk-lib/aws-apigateway";
+import { EMAIL_PATTERN_SOURCE } from "../lambda/utils/validation";
 
 export const CreateOrderSchema = {
   type: JsonSchemaType.OBJECT,
@@ -20,13 +21,20 @@ export const CreateOrderSchema = {
     },
     customer: {
       type: JsonSchemaType.OBJECT,
+      required: ["email", "firstName", "lastName", "address"],
       properties: {
-        email: { type: JsonSchemaType.STRING },
-        contact: { type: JsonSchemaType.STRING },
-        address: { type: JsonSchemaType.STRING }
+        // Keep in sync with EMAIL_PATTERN in website/src/components/Customer.jsx
+        // and lambda/createOrder.ts.
+        email: { type: JsonSchemaType.STRING, maxLength: 254, pattern: EMAIL_PATTERN_SOURCE },
+        firstName: { type: JsonSchemaType.STRING, minLength: 1, maxLength: 50 },
+        lastName: { type: JsonSchemaType.STRING, minLength: 1, maxLength: 50 },
+        contact: { type: JsonSchemaType.STRING, maxLength: 50 },
+        // JSON-encoded address object built by the website.
+        address: { type: JsonSchemaType.STRING, minLength: 2, maxLength: 1000 }
       }
     }
   },
+  required: ["requestedItem", "customer"],
 };
 
 export const GetOrderSchema = {

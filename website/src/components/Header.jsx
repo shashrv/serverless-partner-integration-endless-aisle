@@ -1,109 +1,84 @@
 import { productImage } from "../images";
-import { FaShoppingCart } from "react-icons/fa";
+import { FaShoppingCart, FaStore } from "react-icons/fa";
 import { AiFillDelete } from "react-icons/ai";
-import {
-  Badge,
-  Button,
-  Container,
-  Dropdown,
-  FormControl,
-  Nav,
-  Navbar,
-} from "react-bootstrap";
-import { Link, useLocation } from "react-router-dom";
+import { Badge, Button, Container, Dropdown, Form, Nav, Navbar } from "react-bootstrap";
+import { Link, NavLink, useLocation } from "react-router-dom";
 import { CartState } from "../context/Context";
 import "./styles.css";
 
-const Header = ({ signOut }) => {
+const Header = ({ signOut, username }) => {
   const {
     state: { cart },
     dispatch,
     productDispatch,
+    productState: { searchQuery },
   } = CartState();
+  const section = useLocation().pathname.split("/")[1];
+  const itemCount = cart.reduce((n, item) => n + Number(item.qty || 1), 0);
 
   return (
-    <Navbar bg="dark" variant="dark" style={{ height: 100 }}>
-      <Container>
-        <Navbar.Brand>
-          <Link to="/">AnyCompany</Link>
+    <Navbar expand="lg" variant="dark" sticky="top" className="ea-navbar py-3">
+      <Container fluid="xl">
+        <Navbar.Brand as={Link} to="/" className="ea-brand">
+          <span className="ea-brand-mark" aria-hidden="true"><FaStore /></span>
+          AnyCompany
         </Navbar.Brand>
-        <Navbar.Text>
-          <Link to="/search">Lookup Products</Link>
-        </Navbar.Text>
-        <Navbar.Text>
-          <Link to="/">Lookup Partner</Link>
-        </Navbar.Text>
-        {useLocation().pathname.split("/")[1] !== "products" && (
-          <Navbar.Text>
-            <Link to="/orders">Lookup Orders</Link>
-          </Navbar.Text>
-        )}
-        {useLocation().pathname.split("/")[1] === "products" && (
-          <Navbar.Text className="search">
-            <FormControl
-              style={{ width: 500 }}
-              type="search"
-              placeholder="Search a product..."
-              className="m-auto"
-              aria-label="Search"
-              onChange={(e) => {
-                productDispatch({
-                  type: "FILTER_BY_SEARCH",
-                  payload: e.target.value,
-                });
-              }}
-            />
-          </Navbar.Text>
-        )}
-        {useLocation().pathname.split("/")[1] !== "" && (
-          <Nav>
-            <Dropdown align="end">
-              <Dropdown.Toggle variant="success">
-                <FaShoppingCart color="white" fontSize="25px" />
-                <Badge>{cart.length}</Badge>
-              </Dropdown.Toggle>
+        <Navbar.Toggle aria-controls="main-nav" />
+        <Navbar.Collapse id="main-nav">
+          <Nav className="me-auto gap-1">
+            <Nav.Link as={NavLink} to="/" end>Partners</Nav.Link>
+            <Nav.Link as={NavLink} to="/search">Find a product</Nav.Link>
+            <Nav.Link as={NavLink} to="/orders">Order lookup</Nav.Link>
+          </Nav>
 
-              <Dropdown.Menu style={{ minWidth: 370 }}>
+          {section === "products" && (
+            <Form className="ea-header-search flex-grow-1 me-lg-3 my-2 my-lg-0" role="search" onSubmit={(e) => e.preventDefault()}>
+              <Form.Control
+                type="search"
+                placeholder="Search products by name…"
+                aria-label="Search products by name"
+                value={searchQuery ?? ""}
+                onChange={(e) => productDispatch({ type: "FILTER_BY_SEARCH", payload: e.target.value })}
+              />
+            </Form>
+          )}
+
+          <div className="d-flex align-items-center gap-2">
+            <Dropdown align="end">
+              <Dropdown.Toggle variant="warning" className="ea-cart-btn" aria-label={`Cart, ${itemCount} item${itemCount === 1 ? "" : "s"}`}>
+                <FaShoppingCart aria-hidden="true" />
+                <Badge bg="dark" pill>{itemCount}</Badge>
+              </Dropdown.Toggle>
+              <Dropdown.Menu style={{ minWidth: 340 }} className="py-2">
                 {cart.length > 0 ? (
                   <>
                     {cart.map((prod) => (
-                      <span className="cartitem" key={prod.itemId}>
-                        <img
-                          src={productImage(prod.itemId)}
-                          className="cartItemImg"
-                          alt={prod.name}
-                        />
+                      <div className="cartitem" key={prod.itemId}>
+                        <img src={productImage(prod.itemId)} className="cartItemImg" alt="" />
                         <div className="cartItemDetail">
                           <span>{prod.name}</span>
-                          <span> ${prod.price}</span>
+                          <span className="text-muted">${prod.price} · {prod.partner}</span>
                         </div>
-                        <AiFillDelete
-                          fontSize="20px"
-                          style={{ cursor: "pointer" }}
-                          onClick={() =>
-                            dispatch({
-                              type: "REMOVE_FROM_CART",
-                              payload: prod,
-                            })
-                          }
-                        />
-                      </span>
+                        <Button variant="link" className="text-danger p-1" aria-label={`Remove ${prod.name}`}
+                          onClick={() => dispatch({ type: "REMOVE_FROM_CART", payload: prod })}>
+                          <AiFillDelete fontSize="18px" />
+                        </Button>
+                      </div>
                     ))}
-                    <Link to="/cart">
-                      <Button style={{ width: "95%", margin: "0 10px" }}>
-                        Go To Cart
-                      </Button>
-                    </Link>
+                    <div className="px-3 pt-2">
+                      {/* Dropdown.Item closes the menu on click, unlike a plain Link. */}
+                      <Dropdown.Item as={Link} to="/cart" className="ea-dropdown-cta">Go to cart</Dropdown.Item>
+                    </div>
                   </>
                 ) : (
-                  <span style={{ padding: 10 }}>Cart is Empty!</span>
+                  <span className="d-block px-3 py-2 text-muted">Your cart is empty.</span>
                 )}
               </Dropdown.Menu>
             </Dropdown>
-          </Nav>)}
-        <Button color="inherit" onClick={signOut}>
-          Sign out
-        </Button>
+            {username && <span className="text-white-50 small d-none d-xl-inline">{username}</span>}
+            <Button variant="outline-light" size="sm" onClick={signOut}>Sign out</Button>
+          </div>
+        </Navbar.Collapse>
       </Container>
     </Navbar>
   );

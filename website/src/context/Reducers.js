@@ -1,3 +1,24 @@
+export const EMPTY_CUSTOMER = Object.freeze({
+  firstName: '',
+  lastName: '',
+  email: '',
+  address: '',
+  city: '',
+  state: '',
+  postalCode: '',
+  country: ''
+});
+
+export const INITIAL_PRODUCT_FILTERS = Object.freeze({
+  sort: undefined,
+  byStock: false,
+  byFastDelivery: false,
+  byRating: 0,
+  searchQuery: "",
+  searchSkuQuery: "",
+  byPartner: "",
+});
+
 export const cartReducer = (state, action) => {
   switch (action.type) {
     case "ADD_TO_CART":
@@ -10,9 +31,15 @@ export const cartReducer = (state, action) => {
     case "CHANGE_CART_QTY":
       return {
         ...state,
-        cart: state.cart.filter((c) =>
-          c.itemId === action.payload.itemId ? (c.qty = action.payload.qty) : c.qty
+        cart: state.cart.map((c) =>
+          c.itemId === action.payload.itemId ? { ...c, qty: Number(action.payload.qty) } : c
         ),
+      };
+    case "SET_CUSTOMER_FIELD":
+      if (!Object.prototype.hasOwnProperty.call(EMPTY_CUSTOMER, action.payload.field)) return state;
+      return {
+        ...state,
+        customerDetails: { ...state.customerDetails, [action.payload.field]: action.payload.value }
       };
     case "ADD_CUSTOMER_DETAILS_FIRST_NAME":
       return {
@@ -56,16 +83,7 @@ export const cartReducer = (state, action) => {
       };
     case "CLEAR_CART":
       return {
-        ...state, cart: [], customerDetails: {
-          fistName: '',
-          lastName: '',
-          email: '',
-          address: '',
-          city: '',
-          state: '',
-          postalCode: '',
-          country: ''
-        }
+        ...state, cart: [], customerDetails: { ...EMPTY_CUSTOMER }
       };
     default:
       return state;
@@ -91,7 +109,7 @@ export const productReducer = (state, action) => {
     case "LOOKUP_ORDER":
       return { ...state, searchOrderQuery: action.payload };
     case "CLEAR_FILTERS":
-      return { byStock: false, byFastDelivery: false, byRating: 0 };
+      return { ...INITIAL_PRODUCT_FILTERS };
     default:
       return state;
   }

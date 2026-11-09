@@ -1,98 +1,78 @@
 import { productImage } from "../images";
-import { useEffect, useState } from "react";
-import { Button, Col, Form, Image, ListGroup, Row } from "react-bootstrap";
+import { Button, Form } from "react-bootstrap";
 import { AiFillDelete } from "react-icons/ai";
-import { CartState } from "../context/Context";
-import Rating from "./Rating";
+import { FaShoppingCart } from "react-icons/fa";
 import { Link } from "react-router-dom";
+import { CartState } from "../context/Context";
+import SubHeader from "./SubHeader";
+
+export const TAX_RATE = 8;
+const money = (n) => `$${n.toFixed(2)}`;
 
 const Cart = () => {
   const {
     state: { cart },
     dispatch,
   } = CartState();
-  const [total, setTotal] = useState();
-  const tax = 8;
-  const finalPayable = total + (total * (tax / 100));
 
+  const subtotal = cart.reduce((acc, item) => acc + Number(item.price) * Number(item.qty), 0);
+  const tax = subtotal * (TAX_RATE / 100);
+  const itemCount = cart.reduce((acc, item) => acc + Number(item.qty), 0);
 
-
-  useEffect(() => {
-    setTotal(
-      cart.reduce((acc, curr) => acc + Number(curr.price) * curr.qty, 0)
+  if (cart.length === 0) {
+    return (
+      <>
+        <SubHeader text="Cart" />
+        <div className="ea-card ea-empty">
+          <FaShoppingCart aria-hidden="true" />
+          <p className="mb-3">Your cart is empty.</p>
+          <Link to="/" className="btn btn-primary">Browse partners</Link>
+        </div>
+      </>
     );
-  }, [cart]);
+  }
 
   return (
-    <div className="home">
-      <div className="productContainer">
-        <ListGroup>
-          {cart.map((prod) => (
-            <ListGroup.Item key={prod.itemId}>
-              <Row>
-                <Col md={2}>
-                  <Image src={productImage(prod.itemId)} alt={prod.name} fluid rounded />
-                </Col>
-                <Col md={2}>
-                  <span>{prod.name}</span>
-                </Col>
-                <Col md={2}>
-                  <span>{prod.partner}</span>
-                </Col>
-                <Col md={2}> ${prod.price}</Col>
-                <Col md={2}>
-                  <Rating rating={prod.ratings} />
-                </Col>
-                <Col md={2}>
-                  <Form.Control
-                    as="select"
-                    value={prod.qty}
-                    onChange={(e) =>
-                      dispatch({
-                        type: "CHANGE_CART_QTY",
-                        payload: {
-                          itemId: prod.itemId,
-                          qty: e.target.value,
-                        },
-                      })
-                    }
-                  >
-                    {[...Array(prod.inStock).keys()].map((x) => (
-                      <option key={x + 1}>{x + 1}</option>
-                    ))}
-                  </Form.Control>
-                </Col>
-                <Col md={2}>
-                  <Button
-                    type="button"
-                    variant="light"
-                    onClick={() =>
-                      dispatch({
-                        type: "REMOVE_FROM_CART",
-                        payload: prod,
-                      })
-                    }
-                  >
-                    <AiFillDelete fontSize="20px" />
-                  </Button>
-                </Col>
-              </Row>
-            </ListGroup.Item>
-          ))}
-        </ListGroup>
+    <>
+      <SubHeader text="Cart" subtitle={`${itemCount} item${itemCount === 1 ? "" : "s"} from ${new Set(cart.map((c) => c.partner)).size} partner(s)`} />
+      <div className="ea-cart">
+        <section className="ea-card" aria-label="Cart items">
+          {cart.map((prod) => {
+            // inStock is a string in the catalog; Array("2") would give one option.
+            const maxQty = Math.max(1, Math.min(Number(prod.inStock) || 1, 10));
+            return (
+              <div className="ea-cart-row" key={prod.itemId}>
+                <img src={productImage(prod.itemId)} alt="" />
+                <div>
+                  <div className="fw-semibold">{prod.name}</div>
+                  <div className="text-muted small">{prod.partner} · Size {prod.size}</div>
+                </div>
+                <div className="text-nowrap">${prod.price}</div>
+                <Form.Select size="sm" style={{ width: 80 }} aria-label={`Quantity for ${prod.name}`}
+                  value={prod.qty}
+                  onChange={(e) => dispatch({ type: "CHANGE_CART_QTY", payload: { itemId: prod.itemId, qty: Number(e.target.value) } })}>
+                  {[...Array(maxQty).keys()].map((x) => <option key={x + 1} value={x + 1}>{x + 1}</option>)}
+                </Form.Select>
+                <Button variant="link" className="text-danger p-1" aria-label={`Remove ${prod.name}`}
+                  onClick={() => dispatch({ type: "REMOVE_FROM_CART", payload: prod })}>
+                  <AiFillDelete fontSize="20px" />
+                </Button>
+              </div>
+            );
+          })}
+        </section>
+
+        <aside className="ea-card ea-summary" aria-label="Order summary">
+          <h2 className="h5 fw-bold mb-3">Order summary</h2>
+          <div className="ea-summary-line"><span>Subtotal</span><span>{money(subtotal)}</span></div>
+          <div className="ea-summary-line text-muted"><span>Sales tax ({TAX_RATE}%)</span><span>{money(tax)}</span></div>
+          <div className="ea-summary-line text-muted"><span>Shipping</span><span>From partner</span></div>
+          <div className="ea-summary-line ea-summary-total"><span>Total</span><span>{money(subtotal + tax)}</span></div>
+          <Link to="/customer" className="btn btn-primary btn-lg w-100 mt-3">Proceed to checkout</Link>
+          <Link to="/products" className="btn btn-link w-100 mt-1">Continue shopping</Link>
+        </aside>
       </div>
-      <div className="filters summary">
-        <span className="title">Subtotal ({cart.length}) items</span>
-        <span style={{ fontWeight: 700, fontSize: 20 }}>Total: ${total}</span>
-        <span style={{ fontWeight: 700, fontSize: 20 }}>Tax:  {tax}%</span>
-        <span style={{ fontWeight: 700, fontSize: 20 }}>Total Payable amount: ${finalPayable.toFixed(2)}</span>
-        <Link to="/customer">
-          <Button type="button" disabled={cart.length === 0}>
-            Proceed to Checkout
-          </Button>
-        </Link>
-      </div>
-    </div>
+    </>
   );
 };
 

@@ -69,6 +69,11 @@ export type ContactDetails = {
 };
 
 async function sendEmail(orderId: string, email: string, partner: string, orderStatus: string) {
+    if (!SES_EMAIL_FROM.trim()) {
+        // STORE_EMAIL was not set at deploy time: notifications are switched off.
+        console.log(`Store email not configured; skipping notification for order ${orderId}`);
+        return;
+    }
     const subject = `${partner} order ${orderId} status updated`;
 
     const ses = new SES({ apiVersion: '2010-12-01', region: process.env.AWS_REGION });

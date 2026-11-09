@@ -5,6 +5,7 @@ import { DynamoDBDocument } from '@aws-sdk/lib-dynamodb';
 import { SQSEvent } from 'aws-lambda';
 import { getParamFromSSM } from './utils/getParameter';
 import { buildPartnerUrl, requestJson } from './utils/http';
+import { isValidEmail } from './utils/validation';
 import { ItemRequestSchema, OrderSchema, OrderStatus } from "./utils/schema";
 
 const docClient = DynamoDBDocument.from(new DynamoDB({}));
@@ -44,7 +45,7 @@ export const handler = async (event: SQSEvent) => {
     const { requestedItem, customer } = orderedItem ?? {};
     const quantity = Number(requestedItem?.quantity);
     const price = Number(requestedItem?.price);
-    if (!requestedItem || !customer?.email
+    if (!requestedItem || !isValidEmail(customer?.email)
         || typeof requestedItem.partnerId !== 'string' || !ID_PATTERN.test(requestedItem.partnerId)
         || typeof requestedItem.itemId !== 'string' || !ID_PATTERN.test(requestedItem.itemId)
         || !Number.isInteger(quantity) || quantity < 1

@@ -103,6 +103,12 @@ aws cognito-idp admin-create-user --user-pool-id <userPoolId stack output> --use
 
 Run `cdk destroy`. This will delete the Infrastructure and Website stack created in your AWS Account.
 
+A few resources are kept on purpose and are not deleted by `cdk destroy`:
+
+- The CloudFront/S3 access-log bucket (`infrastructurestack-endlessaislefrontendaccesslogb-*`). CloudFront delivers logs minutes late, so deleting it during teardown would race with new log files. Its objects expire after 30 days; delete the empty bucket afterwards if you like.
+- The API Gateway access log groups and the Lambda/CodeBuild log groups.
+- The `partnerToken` secret is scheduled for deletion with a recovery window. To redeploy before the window ends, run `aws secretsmanager delete-secret --secret-id partnerToken --force-delete-without-recovery` first.
+
 ```bash
 npx cdk destroy
 ```

@@ -1,11 +1,46 @@
-import React, { useEffect, useState } from "react";
-import { Button } from "react-bootstrap";
-import { MDBInput, MDBCard, MDBCardBody, MDBCardHeader, MDBCol, MDBRow, MDBTypography } from 'mdb-react-ui-kit';
-import { CartState } from "../context/Context";
-import SubHeader from "./SubHeader";
+import { useMemo, useState } from "react";
+import { Alert, Button, Card, Col, Form, Row, Spinner } from "react-bootstrap";
 import { Link } from "react-router-dom";
 import { post } from "aws-amplify/api";
+import { CartState } from "../context/Context";
+import { COUNTRIES, findCountry, postalRule } from "../context/locations";
+import SubHeader from "./SubHeader";
 import { ORDERS_API } from "../config";
+
+// Same rule the API enforces (infrastructure/lib/schema/apischema.ts).
+export const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+const NAME_PATTERN = /^[\p{L}][\p{L}' .-]*$/u;
+
+const FIELDS = ["firstName", "lastName", "email", "address", "city", "state", "postalCode", "country"];
+
+export function validateCustomer(details) {
+  const errors = {};
+  const value = (k) => (details[k] ?? "").trim();
+  const country = findCountry(value("country"));
+
+  if (!value("firstName")) errors.firstName = "Enter a first name.";
+  else if (!NAME_PATTERN.test(value("firstName"))) errors.firstName = "Use letters, spaces, apostrophes or hyphens.";
+  if (!value("lastName")) errors.lastName = "Enter a last name.";
+  else if (!NAME_PATTERN.test(value("lastName"))) errors.lastName = "Use letters, spaces, apostrophes or hyphens.";
+
+  if (!value("email")) errors.email = "Enter an email address.";
+  else if (!EMAIL_PATTERN.test(value("email"))) errors.email = "Enter a valid email, like name@example.com.";
+
+  if (!value("address")) errors.address = "Enter a street address.";
+  if (!value("city")) errors.city = "Enter a city.";
+
+  if (!country) errors.country = "Select a country.";
+  if (!value("state")) errors.state = `Select a ${(country?.regionLabel ?? "state").toLowerCase()}.`;
+  else if (country?.regions && !country.regions.some(([code]) => code === value("state"))) {
+    errors.state = `Select a ${country.regionLabel.toLowerCase()} from the list.`;
+  }
+
+  const rule = postalRule(value("country"));
+  if (!value("postalCode")) errors.postalCode = `Enter a ${rule.label.toLowerCase()}.`;
+  else if (!rule.pattern.test(value("postalCode"))) errors.postalCode = `Enter a valid ${rule.label.toLowerCase()} (${rule.hint}).`;
+
+  return errors;
+}
 
 function Customer() {
   const {
@@ -13,259 +48,191 @@ function Customer() {
     dispatch,
     productDispatch,
   } = CartState();
-  const [orderStatus, setOrderStatus] = useState("");
-  useEffect(() => {
-    if (!cart.length < 1) {
-      setValidated(
-        false
-      );
-    }
-  }, [cart]);
+  const [touched, setTouched] = useState({});
+  const [submitting, setSubmitting] = useState(false);
+  const [result, setResult] = useState(null); // { ok: boolean, message: string }
 
-  const [validated, setValidated] = useState(true);
+  const errors = useMemo(() => validateCustomer(customerDetails), [customerDetails]);
+  const country = findCountry(customerDetails.country);
+  const rule = postalRule(customerDetails.country);
 
-  const [errors, setErrors] = useState({});
+  const setField = (field, value) => dispatch({ type: "SET_CUSTOMER_FIELD", payload: { field, value } });
+  const touch = (field) => setTouched((t) => ({ ...t, [field]: true }));
+  const showError = (field) => touched[field] && errors[field];
 
-  const validate = () => {
-    const errors = {};
-    if (!customerDetails.firstName) {
-      errors.firstName = "Please provide your First Name";
-    }
-    if (!customerDetails.lastName) {
-      errors.lastName = "Please provide your Last Name";
-    }
-    if (!customerDetails.email) {
-      errors.email = "Please provide your Email";
-    }
-    if (!customerDetails.address) {
-      errors.address = "Please provide Street Address";
-    }
-    if (!customerDetails.city) {
-      errors.city = "Please provide your City";
-    }
-    if (!customerDetails.state) {
-      errors.state = "Please provide your State";
-    }
-    if (!customerDetails.postalCode) {
-      errors.postalCode = "Please provide your postalCode";
-    } else if (!/^\d{5}$/.test(customerDetails.postalCode)) {
-      errors.postalCode = "Zip code must be 5 digits";
-    }
-    if (!customerDetails.country) {
-      errors.country = "Please provide your Country";
-    }
-    setErrors(errors);
-    return Object.keys(errors).length === 0;
-  };
+  const fieldProps = (field) => ({
+    value: customerDetails[field] ?? "",
+    onChange: (e) => setField(field, e.target.value),
+    onBlur: () => touch(field),
+    isInvalid: Boolean(showError(field)),
+    "aria-describedby": `${field}-feedback`,
+    required: true,
+  });
 
-  const handleSubmit = (event) => {
+  // A fixed-height line under every field: showing an error never moves the layout
+  // (a shift on blur would make a click on the submit button miss).
+  const feedback = (field, hint = "") => (
+    <div id={`${field}-feedback`} className={`ea-field-msg ${showError(field) ? "text-danger" : "text-muted"}`} aria-live="polite">
+      {showError(field) ? errors[field] : hint}
+    </div>
+  );
+
+  const buildOrder = (item) => ({
+    requestedItem: {
+      itemId: item.itemId,
+      // The cart select stores the value as a string; the API model expects a number.
+      quantity: Number(item.qty),
+      size: item.size,
+      partner: item.partner,
+      price: Number(item.price),
+      partnerId: item.partnerId,
+      sku: item.sku,
+      category: item.category,
+    },
+    customer: {
+      address: JSON.stringify({
+        address: customerDetails.address.trim(),
+        city: customerDetails.city.trim(),
+        state: customerDetails.state.trim(),
+        country: country?.name ?? customerDetails.country,
+        countryCode: customerDetails.country,
+        postalCode: customerDetails.postalCode.trim().toUpperCase(),
+      }),
+      firstName: customerDetails.firstName.trim(),
+      lastName: customerDetails.lastName.trim(),
+      email: customerDetails.email.trim(),
+    },
+  });
+
+  const handleSubmit = async (event) => {
     event.preventDefault();
-    if (validate()) {
-      // Submit the form
-      submitOrder(cart, customerDetails);
-      setOrderStatus("Your Order has been submitted Successfully!!!")
-      dispatch({
-        type: "CLEAR_CART"
-      });
-      productDispatch({
-        type: "CLEAR_FILTERS",
-      });
-      console.log("Submitting form...");
+    setTouched(Object.fromEntries(FIELDS.map((f) => [f, true])));
+    if (Object.keys(errors).length > 0 || cart.length === 0) return;
+
+    setSubmitting(true);
+    const outcomes = await Promise.allSettled(
+      cart.map((item) => post({ apiName: ORDERS_API, path: "/orders", options: { body: buildOrder(item) } }).response)
+    );
+    setSubmitting(false);
+
+    const failed = outcomes.filter((o) => o.status === "rejected").length;
+    if (failed === 0) {
+      setResult({ ok: true, message: `Your order${cart.length > 1 ? "s have" : " has"} been sent to the partner.` });
+      dispatch({ type: "CLEAR_CART" });
+      productDispatch({ type: "CLEAR_FILTERS" });
+    } else {
+      // Do not log the error object: it can include the request body with customer PII.
+      console.error(`Order submission failed for ${failed} item(s)`);
+      setResult({ ok: false, message: `${failed} of ${cart.length} item(s) could not be ordered. Please try again.` });
     }
   };
 
-  const submitOrder = (cart, customerDetails) => {
-    cart.forEach(item => {
-
-      const body = {
-        requestedItem: {
-          itemId: item.itemId,
-          // The cart select stores the value as a string; the API model expects a number.
-          quantity: Number(item.qty),
-          size: item.size,
-          partner: item.partner,
-          price: Number(item.price),
-          partnerId: item.partnerId,
-          sku: item.sku,
-          category: item.category
-        },
-        customer: {
-          address: JSON.stringify({ address: customerDetails.address, city: customerDetails.city, state: customerDetails.state, country: customerDetails.country, postalCode: customerDetails.postalCode }),
-          firstName: customerDetails.firstName,
-          lastName: customerDetails.lastName,
-          email: customerDetails.email
-        }
-      }
-      post({ apiName: ORDERS_API, path: '/orders', options: { body } }).response
-        .then(({ body: res }) => res.json())
-        .then(response => {
-          console.log(`Order Submitted Successfully for ${response?.SendMessageResponse?.SendMessageResult?.MessageId}`);
-        })
-        // Do not log the full error: it can include the request body with customer PII.
-        .catch(error => { console.error('Order submission failed', error?.name); });
-
-    });
-
+  if (result?.ok) {
+    return (
+      <div className="ea-card ea-empty">
+        <h1 className="h4 text-body mb-2">Order sent</h1>
+        <p className="mb-3">{result.message} You can look it up from Order lookup.</p>
+        <Link to="/" className="btn btn-primary">Back to partners</Link>
+      </div>
+    );
   }
 
-  return (
-    <div className="mx-auto gradient-custom mt-5" style={{ maxWidth: '900px' }}>
-      {orderStatus ? (
-        <>
-          <SubHeader text={orderStatus}></SubHeader>
-          <Link to="/">
-            <Button style={{ width: "95%", margin: "0 10px" }}>
-              Go To Home
-            </Button>
-          </Link>
-        </>
-      ) : (
+  const subtotal = cart.reduce((acc, item) => acc + Number(item.price) * Number(item.qty), 0);
 
-        <MDBCard className="mb-4">
-          <MDBCardHeader className="py-3">
-            <MDBTypography tag="h5" className="mb-0">Shipping details</MDBTypography>
-            {errors.firstName && <div><md-subheader class="md-no-sticky" style={{ color: 'red' }}>! {errors.firstName}</md-subheader></div>}
-            {errors.lastName && <div><md-subheader class="md-no-sticky" style={{ color: 'red' }}>! {errors.lastName}</md-subheader></div>}
-            {errors.email && <div><md-subheader class="md-no-sticky" style={{ color: 'red' }}>! {errors.email}</md-subheader></div>}
-            {errors.address && <div><md-subheader class="md-no-sticky" style={{ color: 'red' }}> ! {errors.address}</md-subheader></div>}
-            {errors.city && <div><md-subheader class="md-no-sticky" style={{ color: 'red' }}>! {errors.city}</md-subheader></div>}
-            {errors.state && <div><md-subheader class="md-no-sticky" style={{ color: 'red' }}>! {errors.state}</md-subheader></div>}
-            {errors.postalCode && <div><md-subheader class="md-no-sticky" style={{ color: 'red' }}>! {errors.postalCode}</md-subheader></div>}
-            {errors.country && <div><md-subheader class="md-no-sticky" style={{ color: 'red' }}>! {errors.country}</md-subheader></div>}
-          </MDBCardHeader>
-          <MDBCardBody>
-            <form className="mb-0" noValidate onSubmit={handleSubmit} >
-              <MDBRow className="mb-4">
-                <MDBCol>
-                  <MDBInput label='Fisrt Name' type='text' className="mb-4" name="firstName"
-                    onChange={(e) => {
-                      dispatch({
-                        type: "ADD_CUSTOMER_DETAILS_FIRST_NAME",
-                        payload: e.target.value,
-                      });
-                    }}
-                    size="sm"
-                    value={customerDetails.firstName}
-                    required
-                    invalid={MDBInput.invalid}
-                    validation="Please provide your First Name" />
-                </MDBCol>
-                <MDBCol>
-                  <MDBInput label='Last Name' type='text' className="mb-4" name="lastName"
-                    onChange={(e) => {
-                      dispatch({
-                        type: "ADD_CUSTOMER_DETAILS_LAST_NAME",
-                        payload: e.target.value,
-                      });
-                    }}
-                    size="sm"
-                    value={customerDetails.lastName}
-                    required
-                    invalid={MDBInput.invalid}
-                    validation="Please provide your Last Name" />
-                </MDBCol>
-              </MDBRow>
-              <MDBRow className="mb-4">
-                <MDBCol>
-                  <MDBInput label='Email' type='email' className="mb-4" name="email"
-                    onChange={(e) => {
-                      dispatch({
-                        type: "ADD_CUSTOMER_DETAILS_EMAIL",
-                        payload: e.target.value,
-                      });
-                    }}
-                    size="lg"
-                    value={customerDetails.email}
-                    required
-                    invalid={MDBInput.invalid}
-                    validation="Please provide your Email" />
-                </MDBCol>
-              </MDBRow>
-              <MDBRow className="mb-4">
-                <MDBCol>
-                  <MDBInput label='Street Address' type='text' className="mb-4" name="address"
-                    onChange={(e) => {
-                      dispatch({
-                        type: "ADD_CUSTOMER_DETAILS_ADDRESS",
-                        payload: e.target.value,
-                      });
-                    }}
-                    size="lg"
-                    value={customerDetails.address}
-                    required
-                    invalid={MDBInput.invalid}
-                    validation="Please provide your Street Address" />
-                </MDBCol>
-              </MDBRow>
-              <MDBRow className="mb-4">
-                <MDBCol>
-                  <MDBInput label='City' type='text' name="city"
-                    onChange={(e) => {
-                      dispatch({
-                        type: "ADD_CUSTOMER_DETAILS_CITY",
-                        payload: e.target.value,
-                      });
-                    }}
-                    size="sm"
-                    value={customerDetails.city}
-                    required
-                    invalid={MDBInput.invalid}
-                    validation="Please provide your City" />
-                </MDBCol>
-                <MDBCol>
-                  <MDBInput label='State' type='text' name="state"
-                    onChange={(e) => {
-                      dispatch({
-                        type: "ADD_CUSTOMER_DETAILS_STATE",
-                        payload: e.target.value,
-                      });
-                    }}
-                    size="sm"
-                    value={customerDetails.state}
-                    required={true}
-                    invalid={MDBInput.invalid}
-                    validation="Please provide your State" />
-                </MDBCol>
-              </MDBRow>
-              <MDBRow>
-                <MDBCol>
-                  <MDBInput label='Postal Code' type='number' name="postalCode"
-                    onChange={(e) => {
-                      dispatch({
-                        type: "ADD_CUSTOMER_DETAILS_POSTALCODE",
-                        payload: e.target.value,
-                      });
-                    }}
-                    size="sm"
-                    value={customerDetails.postalCode}
-                    required={true}
-                    invalid={MDBInput.invalid}
-                    validation="Please provide valid Zipcode" />
-                </MDBCol>
-                <MDBCol>
-                  <MDBInput label='Country' type='text' name="country"
-                    onChange={(e) => {
-                      dispatch({
-                        type: "ADD_CUSTOMER_DETAILS_COUNTRY",
-                        payload: e.target.value,
-                      });
-                    }}
-                    value={customerDetails.country}
-                    size="sm"
-                    formNoValidate
-                    required
-                    invalid={MDBInput.invalid}
-                    validation="Please provide valid Country" />
-                </MDBCol>
-              </MDBRow>
-              <Button variant="primary" disabled={validated} type="submit" onClick={handleSubmit} size="lg">
-                Send Order to Partner
-              </Button>
-            </form>
-          </MDBCardBody>
-        </MDBCard>
-      )}
+  return (
+    <>
+    <SubHeader text="Checkout" subtitle="Enter the customer's shipping details. Each item ships directly from its partner." />
+    <div className="ea-cart">
+      <Card className="ea-card border-0">
+        <Card.Header as="h2" className="h5 py-3 bg-transparent">Shipping details</Card.Header>
+        <Card.Body>
+          {result && !result.ok && <Alert variant="danger">{result.message}</Alert>}
+          {cart.length === 0 && <Alert variant="info">Your cart is empty. Add a product before checking out.</Alert>}
+          <Form noValidate onSubmit={handleSubmit}>
+            <Row className="g-3">
+              <Form.Group as={Col} md={6} controlId="firstName">
+                <Form.Label>First name</Form.Label>
+                <Form.Control type="text" autoComplete="given-name" maxLength={50} {...fieldProps("firstName")} />
+                {feedback("firstName")}
+              </Form.Group>
+              <Form.Group as={Col} md={6} controlId="lastName">
+                <Form.Label>Last name</Form.Label>
+                <Form.Control type="text" autoComplete="family-name" maxLength={50} {...fieldProps("lastName")} />
+                {feedback("lastName")}
+              </Form.Group>
+
+              <Form.Group as={Col} xs={12} controlId="email">
+                <Form.Label>Email</Form.Label>
+                <Form.Control type="email" autoComplete="email" inputMode="email" maxLength={254}
+                  placeholder="name@example.com" {...fieldProps("email")} />
+                {feedback("email")}
+              </Form.Group>
+
+              <Form.Group as={Col} xs={12} controlId="address">
+                <Form.Label>Street address</Form.Label>
+                <Form.Control type="text" autoComplete="street-address" maxLength={200} {...fieldProps("address")} />
+                {feedback("address")}
+              </Form.Group>
+
+              <Form.Group as={Col} md={6} controlId="country">
+                <Form.Label>Country</Form.Label>
+                <Form.Select autoComplete="country" {...fieldProps("country")}
+                  onChange={(e) => { setField("country", e.target.value); setField("state", ""); }}>
+                  <option value="">Select a country</option>
+                  {COUNTRIES.map((c) => <option key={c.code} value={c.code}>{c.name}</option>)}
+                </Form.Select>
+                {feedback("country")}
+              </Form.Group>
+
+              <Form.Group as={Col} md={6} controlId="state">
+                <Form.Label>{country?.regionLabel ?? "State"}</Form.Label>
+                {country?.regions ? (
+                  <Form.Select autoComplete="address-level1" {...fieldProps("state")}>
+                    <option value="">Select a {country.regionLabel.toLowerCase()}</option>
+                    {country.regions.map(([code, name]) => <option key={code} value={code}>{name}</option>)}
+                  </Form.Select>
+                ) : (
+                  <Form.Control type="text" autoComplete="address-level1" maxLength={60}
+                    disabled={!country} placeholder={country ? "" : "Select a country first"} {...fieldProps("state")} />
+                )}
+                {feedback("state")}
+              </Form.Group>
+
+              <Form.Group as={Col} md={6} controlId="city">
+                <Form.Label>City</Form.Label>
+                <Form.Control type="text" autoComplete="address-level2" maxLength={60} {...fieldProps("city")} />
+                {feedback("city")}
+              </Form.Group>
+
+              <Form.Group as={Col} md={6} controlId="postalCode">
+                <Form.Label>{rule.label}</Form.Label>
+                <Form.Control type="text" autoComplete="postal-code" maxLength={10}
+                  inputMode={customerDetails.country === "US" ? "numeric" : "text"} {...fieldProps("postalCode")} />
+                {feedback("postalCode", rule.hint)}
+              </Form.Group>
+            </Row>
+
+            <Button className="mt-4" variant="primary" type="submit" size="lg" disabled={submitting || cart.length === 0}>
+              {submitting ? <><Spinner size="sm" className="me-2" aria-hidden="true" />Sending…</> : "Send order to partner"}
+            </Button>
+          </Form>
+        </Card.Body>
+      </Card>
+      <aside className="ea-card ea-summary" aria-label="Items in this order">
+        <h2 className="h5 fw-bold mb-3">Items</h2>
+        {cart.map((item) => (
+          <div className="ea-summary-line small" key={item.itemId}>
+            <span className="text-truncate me-2">{item.qty} × {item.name}</span>
+            <span>${(Number(item.price) * Number(item.qty)).toFixed(2)}</span>
+          </div>
+        ))}
+        <div className="ea-summary-line ea-summary-total">
+          <span>Total incl. 8% tax</span><span>${(subtotal * 1.08).toFixed(2)}</span>
+        </div>
+        <Link to="/cart" className="btn btn-link w-100 mt-1">Edit cart</Link>
+      </aside>
     </div>
+    </>
   );
 }
 
