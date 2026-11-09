@@ -26,7 +26,7 @@ export const partnerList = [{
 
 export const productDump = [{
     "itemId": "1",
-    "name": "Bespoke Fresh Chair",
+    "name": "Men's White & Red Running Shoes",
     "price": "202.00",
     "inStock": "2",
     "fastDelivery": true,
@@ -36,12 +36,12 @@ export const productDump = [{
     "quantity": "64",
     "sku": "7c405270-7db8-468c-951e-d4d72c3da0fc",
     "partner": "Partner2",
-    "category": "Eyewear",
-    "description": "The automobile layout consists of a front-engine design, with transaxle-type transmissions mounted at the rear of the engine and four wheel drive",
-    "color": "Yellow"
+    "category": "Footwear",
+    "description": "Lightweight mesh runners with red accents and a cushioned sole for daily miles.",
+    "color": "White"
 }, {
     "itemId": "2",
-    "name": "Handcrafted Frozen Shirt",
+    "name": "Tan Suede Trail Sneakers",
     "price": "6.00",
     "inStock": "7",
     "fastDelivery": false,
@@ -51,12 +51,12 @@ export const productDump = [{
     "quantity": "71",
     "sku": "e073ae31-dc4b-4a3a-b1a2-f050db3949e9",
     "partner": "Partner1",
-    "category": "Apparel",
-    "description": "The Nagasaki Lander is the trademarked name of several series of Nagasaki sport bikes, that started with the 1984 ABC800J",
-    "color": "Yellow"
+    "category": "Footwear",
+    "description": "Suede-and-mesh sneakers with a grippy rubber outsole for light trails and city walks.",
+    "color": "Tan"
 }, {
     "itemId": "3",
-    "name": "Luxurious Cotton Mouse",
+    "name": "White Leather Sneakers",
     "price": "47.00",
     "inStock": "6",
     "fastDelivery": true,
@@ -66,12 +66,12 @@ export const productDump = [{
     "quantity": "32",
     "sku": "d0b1d553-a9ae-42c3-869d-ff6aee49650e",
     "partner": "Partner1",
-    "category": "Footware",
-    "description": "The beautiful range of Apple Naturalé that has an exciting mix of natural ingredients. With the Goodness of 100% Natural Ingredients",
-    "color": "Yellow"
+    "category": "Footwear",
+    "description": "Clean all-white leather sneakers with a padded collar for everyday wear.",
+    "color": "White"
 }, {
     "itemId": "4",
-    "name": "Handcrafted Bronze Pants",
+    "name": "Brown Strap Sandals",
     "price": "192.00",
     "inStock": "8",
     "fastDelivery": true,
@@ -81,12 +81,12 @@ export const productDump = [{
     "quantity": "64",
     "sku": "92ddb729-8f83-4a9a-9cc8-87d54c75cd6a",
     "partner": "Partner1",
-    "category": "Eyewear",
-    "description": "New ABC 13 9370, 13.3, 5th Gen CoreA5-8250U, 8GB RAM, 256GB SSD, power UHD Graphics, OS 10 Home, OS Office A & J 2016",
-    "color": "Red"
+    "category": "Footwear",
+    "description": "Adjustable hook-and-loop straps and a contoured footbed for warm-weather comfort.",
+    "color": "Brown"
 }, {
     "itemId": "5",
-    "name": "Gorgeous Frozen Chair",
+    "name": "Black & Red Running Shoes",
     "price": "240.00",
     "inStock": "4",
     "fastDelivery": true,
@@ -96,12 +96,12 @@ export const productDump = [{
     "quantity": "78",
     "sku": "5b87d907-f40c-4e82-93aa-b6dcda8ae875",
     "partner": "Partner2",
-    "category": "Apparel",
-    "description": "New range of formal shirts are designed keeping you in mind. With fits and styling that will make you stand apart",
-    "color": "Red"
+    "category": "Footwear",
+    "description": "Breathable running shoes with a supportive midsole and reflective details.",
+    "color": "Black"
 }, {
     "itemId": "6",
-    "name": "Elegant Granite Chips",
+    "name": "Silver Mesh Running Shoes",
     "price": "368.00",
     "inStock": "1",
     "fastDelivery": true,
@@ -111,12 +111,12 @@ export const productDump = [{
     "quantity": "20",
     "sku": "73f923d6-b807-46f2-8f96-214e8f106ef7",
     "partner": "Partner2",
-    "category": "Footware",
-    "description": "The slim & simple Maple Gaming Keyboard from Dev Byte comes with a sleek body and 7- Color RGB LED Back-lighting for smart functionality",
-    "color": "Green"
+    "category": "Footwear",
+    "description": "Responsive running shoes with a silver mesh upper and red heel accent.",
+    "color": "Silver"
 }, {
     "itemId": "7",
-    "name": "Elegant Metal Fish",
+    "name": "Kids' Denim Cargo Pants",
     "price": "31.00",
     "inStock": "7",
     "fastDelivery": true,
@@ -127,11 +127,11 @@ export const productDump = [{
     "sku": "a1c57401-5836-4e2e-b9dc-9352c3102c14",
     "partner": "Partner1",
     "category": "Apparel",
-    "description": "The automobile layout consists of a front-engine design, with transaxle-type transmissions mounted at the rear of the engine and four wheel drive",
-    "color": "Red"
+    "description": "Durable denim cargo pants with roomy pockets and an embroidered patch.",
+    "color": "Blue"
 }, {
     "itemId": "8",
-    "name": "Sleek Concrete Pizza",
+    "name": "Kids' Denim Shorts",
     "price": "922.00",
     "inStock": "2",
     "fastDelivery": true,
@@ -141,12 +141,12 @@ export const productDump = [{
     "quantity": "44",
     "sku": "d35ffb6e-d923-4dab-b2a4-be07ef094644",
     "partner": "Partner3",
-    "category": "Footware",
-    "description": "The Apollotech B340 is an affordable wireless mouse with reliable connectivity, 12 months battery life and modern design",
-    "color": "Yellow"
+    "category": "Apparel",
+    "description": "Soft washed-denim shorts with fun embroidered patches.",
+    "color": "Blue"
 }, {
     "itemId": "9",
-    "name": "Oriental Concrete Soap",
+    "name": "Kids' Tiger Print Polo - White",
     "price": "71.00",
     "inStock": "1",
     "fastDelivery": true,
@@ -157,11 +157,11 @@ export const productDump = [{
     "sku": "ddf29cfe-a536-48d7-98ff-bd9270ed4b0d",
     "partner": "Partner2",
     "category": "Apparel",
-    "description": "The Football Is Good For Training And Recreational Purposes",
-    "color": "Yellow"
+    "description": "Cotton polo with a contrast red collar and a playful tiger print.",
+    "color": "White"
 }, {
     "itemId": "10",
-    "name": "Recycled Metal Bacon",
+    "name": "Kids' Tiger Print Polo - Yellow",
     "price": "608.00",
     "inStock": "1",
     "fastDelivery": false,
@@ -171,12 +171,12 @@ export const productDump = [{
     "quantity": "84",
     "sku": "434eab8f-ac06-4201-ad54-81717558c4a5",
     "partner": "Partner2",
-    "category": "Footware",
-    "description": "New ABC 13 9370, 13.3, 5th Gen CoreA5-8250U, 8GB RAM, 256GB SSD, power UHD Graphics, OS 10 Home, OS Office A & J 2016",
-    "color": "Red"
+    "category": "Apparel",
+    "description": "Bright cotton polo with a blue collar and a playful tiger print.",
+    "color": "Yellow"
 }, {
     "itemId": "11",
-    "name": "Handcrafted Steel Tuna",
+    "name": "Kids' Raglan Tee & Track Pants Set",
     "price": "651.00",
     "inStock": "4",
     "fastDelivery": true,
@@ -187,11 +187,11 @@ export const productDump = [{
     "sku": "994aa035-8c03-4e4c-b57d-f34f22b2ea38",
     "partner": "Partner3",
     "category": "Apparel",
-    "description": "Carbonite web goalkeeper gloves are ergonomically designed to give easy fit",
-    "color": "Yellow"
+    "description": "Two-piece set: long-sleeve raglan tee and matching track pants.",
+    "color": "Black"
 }, {
     "itemId": "12",
-    "name": "Generic Frozen Car",
+    "name": "Kids' Polo & Denim Shorts Set",
     "price": "514.00",
     "inStock": "8",
     "fastDelivery": true,
@@ -201,12 +201,12 @@ export const productDump = [{
     "quantity": "40",
     "sku": "16546359-7c1d-4491-99a7-ce23eb7e7fa6",
     "partner": "Partner3",
-    "category": "Footware",
-    "description": "The Apollotech B340 is an affordable wireless mouse with reliable connectivity, 12 months battery life and modern design",
+    "category": "Apparel",
+    "description": "Two-piece set: yellow cotton polo with matching denim shorts.",
     "color": "Yellow"
 }, {
     "itemId": "13",
-    "name": "Modern Cotton Cheese",
+    "name": "Women's Purple Sports Jersey",
     "price": "936.00",
     "inStock": "9",
     "fastDelivery": false,
@@ -217,11 +217,11 @@ export const productDump = [{
     "sku": "d88ab003-2732-463b-8fdb-003ea676b9a9",
     "partner": "Partner3",
     "category": "Apparel",
-    "description": "New ABC 13 9370, 13.3, 5th Gen CoreA5-8250U, 8GB RAM, 256GB SSD, power UHD Graphics, OS 10 Home, OS Office A & J 2016",
-    "color": "Yellow"
+    "description": "Fitted sports jersey in moisture-wicking fabric with contrast shoulder panels.",
+    "color": "Purple"
 }, {
     "itemId": "14",
-    "name": "Small Fresh Pizza",
+    "name": "Purple Team Jersey",
     "price": "829.00",
     "inStock": "4",
     "fastDelivery": false,
@@ -231,12 +231,12 @@ export const productDump = [{
     "quantity": "75",
     "sku": "61c0e4cf-74e5-4d6a-b5f6-93708f02f26d",
     "partner": "Partner2",
-    "category": "Eyewear",
-    "description": "The slim & simple Maple Gaming Keyboard from Dev Byte comes with a sleek body and 7- Color RGB LED Back-lighting for smart functionality",
-    "color": "Yellow"
+    "category": "Apparel",
+    "description": "Classic-fit team jersey with a crest and contrast shoulder trim.",
+    "color": "Purple"
 }, {
     "itemId": "15",
-    "name": "Elegant Granite Bacon",
+    "name": "Red Crest T-Shirt",
     "price": "594.00",
     "inStock": "1",
     "fastDelivery": true,
@@ -246,12 +246,12 @@ export const productDump = [{
     "quantity": "20",
     "sku": "bf49c6e1-d9d6-4e15-97e8-df5a7bacf97b",
     "partner": "Partner1",
-    "category": "Footware",
-    "description": "Andy shoes are designed to keeping in mind durability as well as trends, the most stylish range of shoes & sandals",
-    "color": "Green"
+    "category": "Apparel",
+    "description": "Soft cotton crew-neck tee with a small chest crest.",
+    "color": "Red"
 }, {
     "itemId": "16",
-    "name": "Licensed Concrete Keyboard",
+    "name": "White Lace-Up Sneakers",
     "price": "682.00",
     "inStock": "1",
     "fastDelivery": false,
@@ -261,12 +261,12 @@ export const productDump = [{
     "quantity": "92",
     "sku": "c9bfc4ee-e840-4a53-b65e-5c6fcbfc8199",
     "partner": "Partner2",
-    "category": "Apparel",
-    "description": "The slim & simple Maple Gaming Keyboard from Dev Byte comes with a sleek body and 7- Color RGB LED Back-lighting for smart functionality",
-    "color": "Yellow"
+    "category": "Footwear",
+    "description": "Everyday white sneakers with a cushioned insole and perforated toe.",
+    "color": "White"
 }, {
     "itemId": "17",
-    "name": "Generic Soft Tuna",
+    "name": "Kids' Green Graphic Tee",
     "price": "245.00",
     "inStock": "4",
     "fastDelivery": true,
@@ -277,11 +277,11 @@ export const productDump = [{
     "sku": "249ebf72-454d-41bc-ab0f-2a089585e983",
     "partner": "Partner3",
     "category": "Apparel",
-    "description": "Andy shoes are designed to keeping in mind durability as well as trends, the most stylish range of shoes & sandals",
-    "color": "Yellow"
+    "description": "Cotton tee with a patchwork graphic and contrast stitching.",
+    "color": "Green"
 }, {
     "itemId": "18",
-    "name": "Luxurious Granite Mouse",
+    "name": "Kids' Orange Graphic Tee",
     "price": "13.00",
     "inStock": "1",
     "fastDelivery": true,
@@ -291,12 +291,12 @@ export const productDump = [{
     "quantity": "41",
     "sku": "9094570d-7852-44f6-8fe6-0333d92d629c",
     "partner": "Partner1",
-    "category": "Eyewear",
-    "description": "New ABC 13 9370, 13.3, 5th Gen CoreA5-8250U, 8GB RAM, 256GB SSD, power UHD Graphics, OS 10 Home, OS Office A & J 2016",
-    "color": "Green"
+    "category": "Apparel",
+    "description": "Cotton tee with a patchwork graphic and contrast stitching.",
+    "color": "Orange"
 }, {
     "itemId": "19",
-    "name": "Generic Metal Pants",
+    "name": "Kids' Orange Cartoon Tee",
     "price": "350.00",
     "inStock": "3",
     "fastDelivery": false,
@@ -306,12 +306,12 @@ export const productDump = [{
     "quantity": "80",
     "sku": "b5fa08f3-23c1-4117-b7f7-af868ebd9991",
     "partner": "Partner1",
-    "category": "Footware",
-    "description": "The Football Is Good For Training And Recreational Purposes",
-    "color": "Green"
+    "category": "Apparel",
+    "description": "Bright cotton tee with a cheerful cartoon print.",
+    "color": "Orange"
 }, {
     "itemId": "20",
-    "name": "Ergonomic Bronze Pants",
+    "name": "Kids' Blue Colorblock Tee",
     "price": "278.00",
     "inStock": "5",
     "fastDelivery": false,
@@ -321,12 +321,12 @@ export const productDump = [{
     "quantity": "77",
     "sku": "66ac5f9d-46da-4bdc-a8f7-fdacb9278a55",
     "partner": "Partner3",
-    "category": "Eyewear",
-    "description": "New range of formal shirts are designed keeping you in mind. With fits and styling that will make you stand apart",
-    "color": "Green"
+    "category": "Apparel",
+    "description": "Colorblock cotton tee with a printed chest panel.",
+    "color": "Blue"
 }, {
     "itemId": "21",
-    "name": "Rustic Metal Table",
+    "name": "Kids' Red Colorblock Tee",
     "price": "731.00",
     "inStock": "3",
     "fastDelivery": false,
@@ -336,12 +336,12 @@ export const productDump = [{
     "quantity": "96",
     "sku": "a076df61-7a29-450b-9fd9-1e2267009275",
     "partner": "Partner2",
-    "category": "Footware",
-    "description": "The Football Is Good For Training And Recreational Purposes",
+    "category": "Apparel",
+    "description": "Colorblock cotton tee with a printed chest panel.",
     "color": "Red"
 }, {
     "itemId": "22",
-    "name": "Recycled Bronze Gloves",
+    "name": "Kids' Yellow Sleeveless Tee",
     "price": "366.00",
     "inStock": "2",
     "fastDelivery": false,
@@ -351,12 +351,12 @@ export const productDump = [{
     "quantity": "20",
     "sku": "4671e2e2-b7c3-44fc-a5e9-10f3ee36380e",
     "partner": "Partner1",
-    "category": "Eyewear",
-    "description": "New range of formal shirts are designed keeping you in mind. With fits and styling that will make you stand apart",
+    "category": "Apparel",
+    "description": "Sleeveless cotton tee with a contrast trim and fun print.",
     "color": "Yellow"
 }, {
     "itemId": "23",
-    "name": "Elegant Rubber Shoes",
+    "name": "Kids' Turquoise Sleeveless Tee",
     "price": "772.00",
     "inStock": "5",
     "fastDelivery": false,
@@ -366,12 +366,12 @@ export const productDump = [{
     "quantity": "92",
     "sku": "0a135915-7355-45d3-b7a4-5b33ae4d9b19",
     "partner": "Partner2",
-    "category": "Footware",
-    "description": "Carbonite web goalkeeper gloves are ergonomically designed to give easy fit",
-    "color": "Yellow"
+    "category": "Apparel",
+    "description": "Sleeveless cotton tee with orange trim and a fun print.",
+    "color": "Blue"
 }, {
     "itemId": "24",
-    "name": "Unbranded Plastic Table",
+    "name": "Kids' Orange Sleeveless Tee",
     "price": "622.00",
     "inStock": "4",
     "fastDelivery": true,
@@ -381,12 +381,12 @@ export const productDump = [{
     "quantity": "86",
     "sku": "a129a79d-72aa-40e1-aa8c-4223fe0f3217",
     "partner": "Partner3",
-    "category": "Eyewear",
-    "description": "The Apollotech B340 is an affordable wireless mouse with reliable connectivity, 12 months battery life and modern design",
-    "color": "Yellow"
+    "category": "Apparel",
+    "description": "Sleeveless cotton tee with blue trim and a fun print.",
+    "color": "Orange"
 }, {
     "itemId": "25",
-    "name": "Refined Cotton Table",
+    "name": "Kids' Aqua Sleeveless Tee",
     "price": "717.00",
     "inStock": "7",
     "fastDelivery": false,
@@ -397,6 +397,6 @@ export const productDump = [{
     "sku": "6b79f174-c075-48e4-9d8f-b9b48ab255a6",
     "partner": "Partner1",
     "category": "Apparel",
-    "description": "Ergonomic executive chair upholstered in bonded black leather and PVC padded seat and back for all-day comfort and support",
-    "color": "Green"
+    "description": "Sleeveless cotton tee with yellow trim and a fun print.",
+    "color": "Blue"
 }]

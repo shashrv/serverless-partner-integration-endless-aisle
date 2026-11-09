@@ -5,7 +5,7 @@ import { Category, Partner } from '../lambda/utils/schema'
 export const Partners = [{
     partnerId: "1",
     name: Partner.Partner1,
-    category: Category.Footware,
+    category: Category.Footwear,
     image: 'test.jpg'
 },
 {
@@ -17,6 +17,6 @@ export const Partners = [{
 {
     partnerId: "3",
     name: Partner.Partner3,
-    category: Category.Eyewear,
+    category: Category.Apparel,
     image: 'test.jpg'
 }]

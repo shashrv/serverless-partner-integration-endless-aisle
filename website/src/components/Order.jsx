@@ -3,6 +3,7 @@ import { Alert, Button, Card, Col, Form, Row, Spinner } from "react-bootstrap";
 import { get } from "aws-amplify/api";
 import "./styles.css";
 import Orders from "./Orders";
+import SubHeader from "./SubHeader";
 import { ORDERS_API } from "../config";
 
 const ORDER_ID_PATTERN = /^[A-Za-z0-9_-]{1,64}$/;
@@ -51,9 +52,9 @@ const Order = () => {
   };
 
   return (
-    <div className="my-4 px-3">
-      <Card className="mb-4">
-        <Card.Header as="h5" className="py-3">Lookup orders</Card.Header>
+    <>
+      <SubHeader text="Order lookup" subtitle="Find an order by its ID and the partner that fulfils it." />
+      <Card className="ea-card border-0 mb-4">
         <Card.Body>
           <Form noValidate onSubmit={handleSubmit}>
             <Row className="g-3 align-items-start">
@@ -84,7 +85,7 @@ const Order = () => {
       </Card>
       {customerOrder && <Orders orders={customerOrder} />}
       {message && <Alert variant="warning" role="status">{message}</Alert>}
-    </div>
+    </>
   );
 };
 

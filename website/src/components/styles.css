@@ -1,123 +1,318 @@
-/* header styles */
+/* ---------- Header ---------- */
+.ea-navbar {
+  background: var(--ea-nav);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.06);
+}
 
-.header {
-  display: block;
-  text-align: left;
-  font-size: 50px;
-  margin: 10px 0;
+.ea-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  color: #fff;
+  text-decoration: none;
+}
+
+.ea-brand:hover { color: #fff; }
+
+.ea-brand-mark {
+  display: inline-grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: var(--ea-brand);
+  color: var(--ea-nav);
+  font-size: 0.95rem;
+}
+
+.ea-navbar .nav-link {
+  color: rgba(255, 255, 255, 0.78);
+  border-radius: 8px;
+  padding: 6px 12px !important;
+  font-weight: 500;
+}
+
+.ea-navbar .nav-link:hover { color: #fff; background: rgba(255, 255, 255, 0.08); }
+.ea-navbar .nav-link.active { color: #fff; background: rgba(255, 255, 255, 0.14); }
+
+.ea-header-search { max-width: 360px; }
+
+.ea-cart-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .cartitem {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin: 0 20px;
-  margin-bottom: 20px;
+  gap: 12px;
+  padding: 8px 16px;
 }
 
 .cartItemImg {
-  border-radius: 50%;
-  width: 50px;
-  height: 50px;
+  border-radius: 8px;
+  width: 48px;
+  height: 48px;
   object-fit: cover;
+  flex: none;
 }
 
 .cartItemDetail {
   display: flex;
   flex: 1;
-  padding: 0 20px;
   flex-direction: column;
+  min-width: 0;
+  font-size: 0.9rem;
 }
 
-/* Home Page */
-
-.home {
-  display: flex;
-}
-.partners{
-  align-items: center;
-  width: 25%;
-  margin: 10px;
+.cartItemDetail span:first-child {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.filters {
-  background-color: #343a40;
-  color: white;
-  padding: 20px;
+/* ---------- Page header ---------- */
+.page-header { margin-bottom: 24px; }
+.page-header h1 { font-size: 1.75rem; font-weight: 700; margin: 0; }
+.page-header p { color: var(--ea-muted); margin: 4px 0 0; }
+
+/* ---------- Cards and grids ---------- */
+.ea-card {
+  background: var(--ea-surface);
+  border: 1px solid var(--ea-border);
+  border-radius: var(--ea-radius);
+  box-shadow: var(--ea-shadow);
+}
+
+.ea-grid {
+  display: grid;
+  gap: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+}
+
+.ea-tile {
   display: flex;
   flex-direction: column;
-  width: 20%;
-  margin: 10px;
-  height: 90vh;
+  height: 100%;
+  overflow: hidden;
+  transition: box-shadow 0.15s ease, transform 0.15s ease;
 }
 
-.filters > span {
-  padding-bottom: 20px;
+.ea-tile:hover { box-shadow: var(--ea-shadow-hover); transform: translateY(-2px); }
+
+@media (prefers-reduced-motion: reduce) {
+  .ea-tile, .ea-tile:hover { transition: none; transform: none; }
 }
 
-.title {
-  font-size: 30px;
-}
-
-.productContainer {
-  display: flex;
-  width: 78%;
-  padding: 20px;
-  flex-wrap: wrap;
-  justify-content: space-around;
-}
-
-.orderContainer {
-  display: flex;
+.ea-tile-img {
+  aspect-ratio: 4 / 3;
   width: 100%;
-  padding: 20px;
-  flex-wrap: wrap;
-  justify-content: space-around;
+  object-fit: cover;
+  background: #eef0f3;
 }
 
-.customerContainer {
+.ea-tile-body {
   display: flex;
-  width: 20%;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+  padding: 14px 16px 16px;
+}
+
+.ea-tile-title {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.ea-tile-meta { color: var(--ea-muted); font-size: 0.85rem; }
+.ea-price { font-size: 1.15rem; font-weight: 700; }
+.ea-tile-actions { margin-top: auto; padding-top: 8px; }
+
+/* ---------- Products page ---------- */
+.ea-shop {
+  display: grid;
+  gap: 24px;
+  grid-template-columns: 260px 1fr;
+  align-items: start;
+}
+
+.ea-filters {
+  position: sticky;
+  top: 88px;
   padding: 20px;
-  flex-wrap: wrap;
-  justify-content: space-around;
 }
 
-.products {
-  width: 30%;
-  margin: 10px;
+.ea-filters h2 {
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 16px;
 }
 
-.summary {
-  width: 30%;
+.ea-filter-group + .ea-filter-group {
+  border-top: 1px solid var(--ea-border);
+  margin-top: 16px;
+  padding-top: 16px;
 }
 
-/* Media Queries */
-@media (max-width: 771px) {
-  .filters {
-    width: 40%;
-    padding: 10px;
-    margin: 5px;
-  }
+.ea-filter-label {
+  display: block;
+  color: var(--ea-muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
 
-  .filters > span {
-    font-size: 10px;
-  }
+.ea-results-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+  color: var(--ea-muted);
+}
 
-  .title {
-    font-size: 18px !important;
-  }
+/* ---------- Rating ---------- */
+.ea-rating { color: #f5a623; display: inline-flex; gap: 2px; }
 
-  .productContainer {
-    width: 58%;
-    padding: 0;
-  }
+.ea-rating button {
+  background: none;
+  border: 0;
+  padding: 2px;
+  color: inherit;
+  line-height: 1;
+  border-radius: 4px;
+}
 
-  .search {
-    display: none !important;
-  }
+/* ---------- Empty states ---------- */
+.ea-empty {
+  text-align: center;
+  padding: 48px 24px;
+  color: var(--ea-muted);
+}
 
-  .products {
-    width: 100%;
-  }
+.ea-empty svg { font-size: 2.5rem; margin-bottom: 12px; color: #b6bdc6; }
+
+/* ---------- Cart ---------- */
+.ea-cart {
+  display: grid;
+  gap: 24px;
+  grid-template-columns: 1fr 340px;
+  align-items: start;
+}
+
+.ea-cart-row {
+  display: grid;
+  grid-template-columns: 88px 1fr auto auto auto;
+  gap: 16px;
+  align-items: center;
+  padding: 16px;
+}
+
+.ea-cart-row + .ea-cart-row { border-top: 1px solid var(--ea-border); }
+
+.ea-cart-row img {
+  width: 88px;
+  height: 66px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.ea-summary { padding: 20px; position: sticky; top: 88px; }
+
+.ea-summary-line {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+}
+
+.ea-summary-total {
+  border-top: 1px solid var(--ea-border);
+  margin-top: 8px;
+  padding-top: 12px;
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+/* ---------- Order detail ---------- */
+.orderContainer { margin-top: 16px; }
+
+.ea-order-grid {
+  display: grid;
+  gap: 20px;
+  grid-template-columns: 160px repeat(3, 1fr);
+  padding: 20px;
+}
+
+.ea-order-grid img {
+  width: 160px;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.ea-dl dt {
+  color: var(--ea-muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.ea-dl dd { margin: 0 0 10px; }
+
+/* ---------- Responsive ---------- */
+@media (max-width: 991px) {
+  .ea-shop, .ea-cart { grid-template-columns: 1fr; }
+  .ea-filters, .ea-summary { position: static; }
+  .ea-order-grid { grid-template-columns: 1fr 1fr; }
+}
+
+@media (max-width: 575px) {
+  .ea-cart-row { grid-template-columns: 72px 1fr; }
+  .ea-cart-row img { width: 72px; height: 54px; }
+  .ea-order-grid { grid-template-columns: 1fr; }
+}
+
+/* ---------- Forms ---------- */
+.ea-field-msg {
+  min-height: 1.25rem;
+  margin-top: 4px;
+  font-size: 0.8rem;
+  line-height: 1.25rem;
+}
+
+/* Filters collapse behind a toggle on narrow screens. */
+/* Scoped under .ea-filters so it outranks Bootstrap's .btn display rule. */
+.ea-filters .ea-filters-toggle { display: none; }
+
+@media (max-width: 991px) {
+  .ea-filters .ea-filters-toggle { display: inline-block; }
+  .ea-filters:not(.is-open) .ea-filters-body { display: none; }
+}
+
+/* Primary button look for a link inside a dropdown menu. .dropdown-item resets
+   background and color, so set them explicitly for every state. */
+.dropdown-menu .ea-dropdown-cta {
+  display: block;
+  width: 100%;
+  text-align: center;
+  font-weight: 500;
+  padding: 8px 12px;
+  border-radius: 8px;
+  color: #fff;
+  background-color: var(--bs-primary, #0d6efd);
+}
+
+.dropdown-menu .ea-dropdown-cta:hover,
+.dropdown-menu .ea-dropdown-cta:focus,
+.dropdown-menu .ea-dropdown-cta:active {
+  color: #fff;
+  background-color: #0b5ed7;
 }

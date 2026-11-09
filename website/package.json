@@ -9,6 +9,7 @@
   "scripts": {
     "start": "vite",
     "dev": "vite",
+    "dev:ui": "vite --mode uipreview",
     "build": "vite build",
     "preview": "vite preview --host 127.0.0.1"
   },

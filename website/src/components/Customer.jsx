@@ -69,8 +69,12 @@ function Customer() {
     required: true,
   });
 
-  const feedback = (field) => (
-    <Form.Control.Feedback type="invalid" id={`${field}-feedback`}>{errors[field]}</Form.Control.Feedback>
+  // A fixed-height line under every field: showing an error never moves the layout
+  // (a shift on blur would make a click on the submit button miss).
+  const feedback = (field, hint = "") => (
+    <div id={`${field}-feedback`} className={`ea-field-msg ${showError(field) ? "text-danger" : "text-muted"}`} aria-live="polite">
+      {showError(field) ? errors[field] : hint}
+    </div>
   );
 
   const buildOrder = (item) => ({
@@ -125,17 +129,22 @@ function Customer() {
 
   if (result?.ok) {
     return (
-      <div className="mx-auto mt-5" style={{ maxWidth: 900 }}>
-        <SubHeader text={result.message} />
-        <Link to="/" className="btn btn-primary mt-3">Go to Home</Link>
+      <div className="ea-card ea-empty">
+        <h1 className="h4 text-body mb-2">Order sent</h1>
+        <p className="mb-3">{result.message} You can look it up from Order lookup.</p>
+        <Link to="/" className="btn btn-primary">Back to partners</Link>
       </div>
     );
   }
 
+  const subtotal = cart.reduce((acc, item) => acc + Number(item.price) * Number(item.qty), 0);
+
   return (
-    <div className="mx-auto my-5 px-3" style={{ maxWidth: 900 }}>
-      <Card>
-        <Card.Header as="h5" className="py-3">Shipping details</Card.Header>
+    <>
+    <SubHeader text="Checkout" subtitle="Enter the customer's shipping details. Each item ships directly from its partner." />
+    <div className="ea-cart">
+      <Card className="ea-card border-0">
+        <Card.Header as="h2" className="h5 py-3 bg-transparent">Shipping details</Card.Header>
         <Card.Body>
           {result && !result.ok && <Alert variant="danger">{result.message}</Alert>}
           {cart.length === 0 && <Alert variant="info">Your cart is empty. Add a product before checking out.</Alert>}
@@ -199,8 +208,7 @@ function Customer() {
                 <Form.Label>{rule.label}</Form.Label>
                 <Form.Control type="text" autoComplete="postal-code" maxLength={10}
                   inputMode={customerDetails.country === "US" ? "numeric" : "text"} {...fieldProps("postalCode")} />
-                {feedback("postalCode")}
-                <Form.Text muted>{rule.hint}</Form.Text>
+                {feedback("postalCode", rule.hint)}
               </Form.Group>
             </Row>
 
@@ -210,7 +218,21 @@ function Customer() {
           </Form>
         </Card.Body>
       </Card>
+      <aside className="ea-card ea-summary" aria-label="Items in this order">
+        <h2 className="h5 fw-bold mb-3">Items</h2>
+        {cart.map((item) => (
+          <div className="ea-summary-line small" key={item.itemId}>
+            <span className="text-truncate me-2">{item.qty} × {item.name}</span>
+            <span>${(Number(item.price) * Number(item.qty)).toFixed(2)}</span>
+          </div>
+        ))}
+        <div className="ea-summary-line ea-summary-total">
+          <span>Total incl. 8% tax</span><span>${(subtotal * 1.08).toFixed(2)}</span>
+        </div>
+        <Link to="/cart" className="btn btn-link w-100 mt-1">Edit cart</Link>
+      </aside>
     </div>
+    </>
   );
 }
 

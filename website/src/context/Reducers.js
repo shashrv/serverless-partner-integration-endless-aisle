@@ -9,6 +9,16 @@ export const EMPTY_CUSTOMER = Object.freeze({
   country: ''
 });
 
+export const INITIAL_PRODUCT_FILTERS = Object.freeze({
+  sort: undefined,
+  byStock: false,
+  byFastDelivery: false,
+  byRating: 0,
+  searchQuery: "",
+  searchSkuQuery: "",
+  byPartner: "",
+});
+
 export const cartReducer = (state, action) => {
   switch (action.type) {
     case "ADD_TO_CART":
@@ -21,8 +31,8 @@ export const cartReducer = (state, action) => {
     case "CHANGE_CART_QTY":
       return {
         ...state,
-        cart: state.cart.filter((c) =>
-          c.itemId === action.payload.itemId ? (c.qty = action.payload.qty) : c.qty
+        cart: state.cart.map((c) =>
+          c.itemId === action.payload.itemId ? { ...c, qty: Number(action.payload.qty) } : c
         ),
       };
     case "SET_CUSTOMER_FIELD":
@@ -99,7 +109,7 @@ export const productReducer = (state, action) => {
     case "LOOKUP_ORDER":
       return { ...state, searchOrderQuery: action.payload };
     case "CLEAR_FILTERS":
-      return { byStock: false, byFastDelivery: false, byRating: 0 };
+      return { ...INITIAL_PRODUCT_FILTERS };
     default:
       return state;
   }

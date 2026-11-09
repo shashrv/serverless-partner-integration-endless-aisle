@@ -1,36 +1,17 @@
 import { createContext, useContext, useReducer } from "react";
-import { cartReducer, productReducer } from "./Reducers";
+import { EMPTY_CUSTOMER, INITIAL_PRODUCT_FILTERS, cartReducer, productReducer } from "./Reducers";
 import { productDump } from "./productList";
+
 const Cart = createContext();
 
-
 const Context = ({ children }) => {
-  const products = productDump;
-
   const [state, dispatch] = useReducer(cartReducer, {
-    products: products,
+    products: productDump,
     cart: [],
-    customerDetails: {
-      firstName: '',
-      lastName: '',
-      email: '',
-      address: '',
-      city: '',
-      state: '',
-      postalCode: '',
-      country: ''
-    }
+    customerDetails: { ...EMPTY_CUSTOMER },
   });
 
-  const [productState, productDispatch] = useReducer(productReducer, {
-    byStock: false,
-    byFastDelivery: false,
-    byRating: 0,
-    searchQuery: "",
-    searchSkuQuery: "",
-    byPartner: "",
-  });
-
+  const [productState, productDispatch] = useReducer(productReducer, { ...INITIAL_PRODUCT_FILTERS });
 
   return (
     <Cart.Provider value={{ state, dispatch, productState, productDispatch }}>
@@ -39,8 +20,6 @@ const Context = ({ children }) => {
   );
 };
 
-export const CartState = () => {
-  return useContext(Cart);
-};
+export const CartState = () => useContext(Cart);
 
 export default Context;
