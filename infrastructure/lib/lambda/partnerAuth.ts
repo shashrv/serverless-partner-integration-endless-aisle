@@ -1,29 +1,48 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: MIT-0
 
-import { APIGatewayProxyEvent } from "aws-lambda";
+import { APIGatewayAuthorizerResult, APIGatewayRequestAuthorizerEvent } from "aws-lambda";
+import { createHash, timingSafeEqual } from "crypto";
 import { getParamFromSSM } from "./utils/getParameter";
 
-export const handler = async (event: APIGatewayProxyEvent) => {
-    let auth = "Deny"
-    if (!event.headers['authorizationToken']) {
-        return { statusCode: 400, body: 'invalid request, missing the parameters  in body' };
-    } else if (!process.env.TOKEN_PATH) {
-        return { statusCode: 400, body: 'invalid request, missing the parameters  in body' };
+const buildPolicy = (effect: "Allow" | "Deny", methodArn: string): APIGatewayAuthorizerResult => ({
+    principalId: "PartnerCognito",
+    policyDocument: {
+        Version: "2012-10-17",
+        Statement: [{ Action: "execute-api:Invoke", Resource: methodArn, Effect: effect }]
     }
-    else {
-        const authToken = event.headers['authorizationToken'];
-        const ssmSecret = await getParamFromSSM(process.env.TOKEN_PATH);
-        if (ssmSecret === "No Data" || ssmSecret === undefined || ssmSecret === null || ssmSecret === "") {
-            auth = "Deny"
-        }
-        else if (!authToken || authToken !== await ssmSecret.toString().trim()) {
-            auth = "Deny"
-        } else {
-            auth = "Allow"
-        }
+});
+
+/**
+ * Constant-time string comparison. Hashing both sides first gives equal-length
+ * buffers, so timingSafeEqual never throws and the length of the secret is not leaked.
+ */
+const safeEquals = (a: string, b: string): boolean => {
+    const ha = createHash("sha256").update(a, "utf8").digest();
+    const hb = createHash("sha256").update(b, "utf8").digest();
+    return timingSafeEqual(ha, hb);
+};
+
+const getHeader = (headers: APIGatewayRequestAuthorizerEvent["headers"], name: string): string | undefined => {
+    if (!headers) return undefined;
+    const key = Object.keys(headers).find((h) => h.toLowerCase() === name.toLowerCase());
+    return key ? headers[key] : undefined;
+};
+
+export const handler = async (event: APIGatewayRequestAuthorizerEvent): Promise<APIGatewayAuthorizerResult> => {
+    const methodArn = event.methodArn;
+    const authToken = getHeader(event.headers, "authorizationToken")?.trim();
+    const tokenPath = process.env.TOKEN_PATH;
+
+    // Fail closed on every missing input.
+    if (!authToken || !tokenPath) {
+        return buildPolicy("Deny", methodArn);
     }
-    const authResponse = { "principalId": "PartnerCognito", "policyDocument": { "Version": "2012-10-17", "Statement": [{ "Action": "execute-api:Invoke", "Resource": event['methodArn'], "Effect": auth }] } }
-    console.log(`authResponse: ${JSON.stringify(authResponse)}`);
-    return authResponse
-}
+
+    const expected = await getParamFromSSM(tokenPath);
+    if (!expected) {
+        return buildPolicy("Deny", methodArn);
+    }
+
+    return buildPolicy(safeEquals(authToken, expected) ? "Allow" : "Deny", methodArn);
+};

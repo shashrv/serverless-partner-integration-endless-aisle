@@ -1,3 +1,4 @@
+import { productImage } from "../images";
 import { useEffect, useState } from "react";
 import { Button, Col, Form, Image, ListGroup, Row } from "react-bootstrap";
 import { AiFillDelete } from "react-icons/ai";
@@ -30,7 +31,7 @@ const Cart = () => {
             <ListGroup.Item key={prod.itemId}>
               <Row>
                 <Col md={2}>
-                  <Image src={`${require(`../../images/products/${prod.itemId}.jpg`)}`} alt={prod.name} fluid rounded />
+                  <Image src={productImage(prod.itemId)} alt={prod.name} fluid rounded />
                 </Col>
                 <Col md={2}>
                   <span>{prod.name}</span>

@@ -5,8 +5,9 @@ import {
 import { MDBCard, MDBCardBody, MDBCardHeader, MDBCol, MDBRow, MDBTypography } from 'mdb-react-ui-kit';
 import "./styles.css";
 import { Button } from "react-bootstrap";
-import { API } from "aws-amplify";
+import { get } from "aws-amplify/api";
 import Orders from "./Orders";
+import { ORDERS_API } from "../config";
 
 const Order = () => {
   const [orderId, setOrderId] = useState("");
@@ -36,14 +37,22 @@ const Order = () => {
     event.preventDefault();
     if (validate()) {
       // Submit the form
-      await API.get('orders', `orders/${orderId}?partner=Partner${partnerId}}`).then(response => {
-        if (response.message.orderId) {
+      try {
+        const { body } = await get({
+          apiName: ORDERS_API,
+          path: `/orders/${encodeURIComponent(orderId.trim())}`,
+          options: { queryParams: { partner: `Partner${partnerId}` } },
+        }).response;
+        const response = await body.json();
+        if (response?.message?.orderId) {
           setCustomerOrder(response.message);
         } else {
-          setMessage(response.message);
+          setMessage(typeof response?.message === "string" ? response.message : "Order not found");
         }
-        return response;
-      }).catch(error => { console.log(`Error:  ${JSON.stringify(error)}`) });
+      } catch (error) {
+        console.error("Order lookup failed", error?.name);
+        setMessage("Order lookup failed");
+      }
     }
   };
 

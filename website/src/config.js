@@ -1,6 +1,10 @@
-export default {
-  apiEndpoint: process.env.REACT_APP_API_URL,
-  userPoolId: process.env.REACT_APP_USER_POOL_ID,
-  awsRegion: process.env.REACT_APP_AWS_REGION,
-  userPoolClientId: process.env.REACT_APP_USER_POOL_CLIENT_ID,
+const config = {
+  apiEndpoint: import.meta.env.VITE_API_URL,
+  userPoolId: import.meta.env.VITE_USER_POOL_ID,
+  awsRegion: import.meta.env.VITE_AWS_REGION,
+  userPoolClientId: import.meta.env.VITE_USER_POOL_CLIENT_ID,
 };
+
+export default config;
+
+export const ORDERS_API = "orders";

@@ -35,7 +35,7 @@ export class DDBTable extends Construct {
       partitionKey: props.primaryKey,
       billingMode: ddb.BillingMode.PROVISIONED,
       removalPolicy: RemovalPolicy.DESTROY,
-      pointInTimeRecovery: true,
+      pointInTimeRecoverySpecification: { pointInTimeRecoveryEnabled: true },
       stream: props.stream
     });
 

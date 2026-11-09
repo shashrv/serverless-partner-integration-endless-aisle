@@ -1,3 +1,4 @@
+import { productImage } from "../images";
 import { FaShoppingCart } from "react-icons/fa";
 import { AiFillDelete } from "react-icons/ai";
 import {
@@ -68,7 +69,7 @@ const Header = ({ signOut }) => {
                     {cart.map((prod) => (
                       <span className="cartitem" key={prod.itemId}>
                         <img
-                          src={`${require(`../../images/products/${prod.itemId}.jpg`)}`}
+                          src={productImage(prod.itemId)}
                           className="cartItemImg"
                           alt={prod.name}
                         />
