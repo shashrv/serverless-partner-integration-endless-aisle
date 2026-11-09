@@ -34,10 +34,17 @@ export class Frontend extends Construct {
       encryption: BucketEncryption.S3_MANAGED,
       blockPublicAccess: BlockPublicAccess.BLOCK_ALL,
       enforceSSL: true,
-      removalPolicy: RemovalPolicy.DESTROY,
+      // Retained on stack deletion: CloudFront delivers logs minutes late, so emptying the
+      // bucket during teardown races with new log files and fails the delete. Objects
+      // expire after 30 days, so a retained bucket empties itself.
+      removalPolicy: RemovalPolicy.RETAIN,
+      lifecycleRules: [{
+        id: 'expire-access-logs',
+        expiration: Duration.days(30),
+        abortIncompleteMultipartUploadAfter: Duration.days(1),
+      }],
       // CloudFront standard logging (legacy) writes with ACLs, so it needs OBJECT_WRITER.
       objectOwnership: ObjectOwnership.OBJECT_WRITER,
-      autoDeleteObjects: true,
     });
 
     const assetBucket = new Bucket(this, 'AssetBucket', {

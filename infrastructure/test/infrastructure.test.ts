@@ -104,3 +104,16 @@ test('create-order model requires a well-formed customer email', () => {
     }),
   });
 });
+
+test('access log bucket is retained on teardown and expires logs after 30 days', () => {
+  template.hasResource('AWS::S3::Bucket', {
+    DeletionPolicy: 'Retain',
+    UpdateReplacePolicy: 'Retain',
+    Properties: Match.objectLike({
+      OwnershipControls: { Rules: [{ ObjectOwnership: 'ObjectWriter' }] },
+      LifecycleConfiguration: {
+        Rules: Match.arrayWith([Match.objectLike({ ExpirationInDays: 30, Status: 'Enabled' })]),
+      },
+    }),
+  });
+});
